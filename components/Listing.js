@@ -19,6 +19,7 @@ function Listing({ imageUrl, title, description, price, featured, _id,likes   })
     // Use useCallback to avoid unnecessary re-creations of the callback.
     // This is particularly useful if this callback is passed as a prop to child components.
     const handleLike = useCallback(async () => {
+        setLikesCount(prevLikesCount => prevLikesCount + 1);
         try {
             const res = await fetch('/api/listings/like', {
                 method: 'POST',
@@ -33,6 +34,7 @@ function Listing({ imageUrl, title, description, price, featured, _id,likes   })
             const updatedListing = await res.json();
             setLikesCount(updatedListing.likes);
         } catch (error) {
+            setLikesCount(prevLikesCount => prevLikesCount - 1); 
             console.error('Error liking listing:', error);
         }
     }, [_id]);
