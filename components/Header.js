@@ -24,9 +24,7 @@ function Header() {
                         <div className="flex-shrink-0 flex items-center">
                             {/* Logo or Branding */}
                             <Link href="/">
-                                <a>
                                     <span className="text-xl font-bold">Nyumba</span>
-                                </a>
                             </Link>
                         </div>
 

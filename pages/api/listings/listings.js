@@ -11,6 +11,7 @@ export default async function handler(req, res) {
     try {
       // Find all listings in the database
       const listings = await Listing.find({});
+      console.log(listings);  
       // Send the listings as the response
       res.status(200).json(listings);
     } catch (error) {

@@ -40,7 +40,7 @@ export default function Home({ listings }) {
 // Fetch data from the API route
 export async function getStaticProps() {
   try {
-    const res = await fetch('http://localhost:3000/api/listings/listings');
+    const res = await fetch('/api/listings/listings');
     
     // Check for any response errors
     if (!res.ok) {
