@@ -40,8 +40,10 @@ export default function Home({ listings }) {
 // Fetch data from the API route
 export async function getStaticProps() {
   try {
-    const res = await fetch('/api/listings/listings');
-    
+    // Construct the URL using the environment variable
+    const apiUrl = `${process.env.NEXT_PUBLIC_API_BASE_URL}/listings/listings`;
+    const res = await fetch(apiUrl);
+
     // Check for any response errors
     if (!res.ok) {
       throw new Error(`Fetch failed with status: ${res.status}`);
@@ -58,3 +60,4 @@ export async function getStaticProps() {
     return { props: { listings: [] } };
   }
 }
+
