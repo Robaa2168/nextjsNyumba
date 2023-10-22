@@ -25,24 +25,26 @@ function Listing({ imageUrl, title, description, price, featured }) {
 
 
     return (
-        <div className="border rounded-lg overflow-hidden shadow-md relative group"> {/* Added 'group' for group-hover functionality */}
+        <div className="flex flex-col border rounded-lg overflow-hidden shadow-md relative group">
             {featured && <span className="absolute top-1 right-1 bg-red-500 text-white py-1 px-3 text-xs sm:text-sm font-bold uppercase rounded-full">Featured</span>}
 
             {/* Adjust your image element like this */}
             <Image
-                src={imageUrl}
-                alt={title ? `Image of ${title}` : ""}
-                layout="fill"
-                objectFit="cover"
-                quality={75}
-                className="
-        transform 
-        transition-transform 
-        duration-300 
-        ease-in-out 
-        group-hover:scale-105
-    "
-            />
+    src={imageUrl}
+    alt={title ? `Image of ${title}` : ""}
+    width={500}  // specify dimensions
+    height={500}  // specify dimensions
+    objectFit="cover"
+    quality={75}
+    className="
+transform 
+transition-transform 
+duration-300 
+ease-in-out 
+group-hover:scale-105
+"
+/>
+
 
 
             {/* It might be better to separate these buttons into a new component to keep your code DRY.
