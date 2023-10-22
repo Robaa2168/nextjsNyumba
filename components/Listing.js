@@ -5,10 +5,10 @@ import { FiHeart, FiMessageCircle, FiShare } from 'react-icons/fi';
 import Image from 'next/image';
 
 
-function Listing({ imageUrl, title, description, price, featured }) {
+function Listing({ imageUrl, title, description, price, featured, _id,likes   }) {
     // It's better to start with likes, comments, and shares possibly coming from props,
     // allowing your component to be initialized with real data.
-    const [likes, setLikes] = useState(0);
+    const [likesCount, setLikesCount] = useState(likes);
     const [commentsList, setCommentsList] = useState([
         "Beautiful house!",
         "I've stayed here before, it's amazing.",
@@ -18,10 +18,24 @@ function Listing({ imageUrl, title, description, price, featured }) {
 
     // Use useCallback to avoid unnecessary re-creations of the callback.
     // This is particularly useful if this callback is passed as a prop to child components.
-    const handleLike = useCallback(() => {
-        setLikes((prevLikes) => prevLikes + 1); // Use functional update to ensure correct next state when updates may be close together.
-    }, []); // Empty dependency array because we don't depend on any external values.
+    const handleLike = useCallback(async () => {
+        try {
+            const res = await fetch('/api/listings/like', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ listingId: _id }),
+            });
 
+            if (!res.ok) {
+                throw new Error(`An error occurred: ${res.status}`);
+            }
+
+            const updatedListing = await res.json();
+            setLikesCount(updatedListing.likes);
+        } catch (error) {
+            console.error('Error liking listing:', error);
+        }
+    }, [_id]);
 
 
     return (
@@ -56,7 +70,7 @@ group-hover:scale-105
                 >
                     <FiHeart className="text-white text-2xl" />
                 </button>
-                <span className="text-white">{likes}</span>
+                <span className="text-white">{likesCount}</span>
 
                 <button
                     /*onClick={handleComment}*/

@@ -23,7 +23,7 @@ export default function Home({ listings }) {
         {/* Listings grid */}
         <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 sm:gap-5 lg:grid-cols-3 lg:gap-6">
           {listings.map(listing => (
-            <div key={listing.id} className="relative">
+            <div key={listing._id} className="relative">
               <Listing {...listing} />
             </div>
           ))}
