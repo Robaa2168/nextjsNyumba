@@ -23,10 +23,13 @@ function Header() {
                     <div className="flex-1 flex items-center justify-between sm:items-stretch sm:justify-start">
                         <div className="flex-shrink-0 flex items-center">
                             {/* Logo or Branding */}
-                            <a href="/">
-                                <span className="text-xl font-bold">Nyumba</span>
-                            </a>
+                            <Link href="/">
+                                <a>
+                                    <span className="text-xl font-bold">Nyumba</span>
+                                </a>
+                            </Link>
                         </div>
+
 
                         <div className="hidden md:flex md:ml-6 items-center">
                             <div className="relative">
@@ -76,26 +79,26 @@ function Header() {
 
                 {/* Mobile menu, show/hide based on menu state. */}
                 {mobileMenuOpen && (
-        <div className="md:hidden">
-        <div className="px-2 pt-2 pb-3 space-y-1 sm:px-3">
-            <Link href="/create-listing" className="text-white block px-3 py-2 rounded-md text-base font-medium hover:bg-emerald-700">
-                Create
-            </Link>
-            <Link href="/" className="text-white block px-3 py-2 rounded-md text-base font-medium hover:bg-emerald-700">
-                Become a host
-            </Link>
-            <Link href="/" className="text-white block px-3 py-2 rounded-md text-base font-medium hover:bg-emerald-700">
-                Help
-            </Link>
-            <Link href="/users/signup" className="text-white block px-3 py-2 rounded-md text-base font-medium hover:bg-emerald-700">
-                Sign up
-            </Link>
-            <Link href="/users/login" className="text-white block px-3 py-2 rounded-md text-base font-medium hover:bg-emerald-700">
-                Log in
-            </Link>
-        </div>
-    </div>
-    
+                    <div className="md:hidden">
+                        <div className="px-2 pt-2 pb-3 space-y-1 sm:px-3">
+                            <Link href="/create-listing" className="text-white block px-3 py-2 rounded-md text-base font-medium hover:bg-emerald-700">
+                                Create
+                            </Link>
+                            <Link href="/" className="text-white block px-3 py-2 rounded-md text-base font-medium hover:bg-emerald-700">
+                                Become a host
+                            </Link>
+                            <Link href="/" className="text-white block px-3 py-2 rounded-md text-base font-medium hover:bg-emerald-700">
+                                Help
+                            </Link>
+                            <Link href="/users/signup" className="text-white block px-3 py-2 rounded-md text-base font-medium hover:bg-emerald-700">
+                                Sign up
+                            </Link>
+                            <Link href="/users/login" className="text-white block px-3 py-2 rounded-md text-base font-medium hover:bg-emerald-700">
+                                Log in
+                            </Link>
+                        </div>
+                    </div>
+
                 )}
             </div>
         </header>
