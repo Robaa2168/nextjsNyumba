@@ -2,6 +2,8 @@
 
 import React, { useState, useCallback } from 'react'; // Import useCallback
 import { FiHeart, FiMessageCircle, FiShare } from 'react-icons/fi';
+import Image from 'next/image';
+
 
 function Listing({ imageUrl, title, description, price, featured }) {
     // It's better to start with likes, comments, and shares possibly coming from props,
@@ -27,22 +29,21 @@ function Listing({ imageUrl, title, description, price, featured }) {
             {featured && <span className="absolute top-1 right-1 bg-red-500 text-white py-1 px-3 text-xs sm:text-sm font-bold uppercase rounded-full">Featured</span>}
 
             {/* Adjust your image element like this */}
-            <img
+            <Image
                 src={imageUrl}
                 alt={title ? `Image of ${title}` : ""}
+                layout="fill"
+                objectFit="cover"
+                quality={75}
                 className="
-            w-full 
-            h-48 sm:h-64 
-            object-cover 
-            object-center 
-            transform 
-            transition-transform 
-            duration-300 
-            ease-in-out 
-            group-hover:scale-105 // Scales the image up to 105% when the parent with 'group' class is hovered over
-          "
-                loading="lazy"
+        transform 
+        transition-transform 
+        duration-300 
+        ease-in-out 
+        group-hover:scale-105
+    "
             />
+
 
             {/* It might be better to separate these buttons into a new component to keep your code DRY.
           This new component could accept props like the icon, action, count, etc. */}
