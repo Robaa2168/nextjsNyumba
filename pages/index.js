@@ -38,7 +38,7 @@ export default function Home({ listings }) {
 
 
 // Fetch data from the API route
-export async function getStaticProps() {
+export async function getServerSideProps() {
   try {
     // Construct the URL using the environment variable
     const apiUrl = `${process.env.NEXT_PUBLIC_API_BASE_URL}/listings/listings`;
