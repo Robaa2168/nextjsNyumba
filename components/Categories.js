@@ -65,10 +65,9 @@ function Categories() {
                             {/* Category icon */}
                             <div 
                                 className="w-16 h-16 mb-2 flex items-center justify-center text-emerald-500 bg-emerald-50 shadow hover:shadow-lg transition-shadow duration-300 rounded-full" // added background color and rounded the div
-                                style={{ border: '2px solid transparent' }} // border to ensure the box size remains consistent on hover
-                                onMouseEnter={e => e.currentTarget.style.border = '2px solid currentColor'} // emerald green border on hover
-                                onMouseLeave={e => e.currentTarget.style.border = '2px solid transparent'}
-                            >
+                                style={{ border: '2px solid transparent' }} 
+                                onMouseEnter={e => e.currentTarget.style.border = '1px solid currentColor'} 
+                                onMouseLeave={e => e.currentTarget.style.border = '2px solid transparent'} >
                                 <category.icon />
                             </div>
                             <p className="mt-2 text-center text-gray-600">{category.name}</p>

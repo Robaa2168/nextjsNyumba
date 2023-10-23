@@ -6,10 +6,21 @@ import Listing from '../components/Listing';
 import Hero from '../components/Hero';
 import Categories from '../components/Categories';
 import { motion } from 'framer-motion';
-import { FiSearch } from 'react-icons/fi';
+import React, { useState } from 'react';
+import CommentModal from '../components/CommentModal';
 
 
 export default function Home({ listings }) {
+  const [isCommentModalOpen, setCommentModalOpen] = useState(false);
+  const [activeComments, setActiveComments] = useState([]);
+  const [activeListingTitle, setActiveListingTitle] = useState('');
+
+ const showComments = (comments, title) => {
+    setActiveComments(comments);
+    setActiveListingTitle(title);
+    setCommentModalOpen(true);
+  };
+
   return (
     <div className="flex flex-col justify-between h-screen">
       <Head>
@@ -36,10 +47,11 @@ export default function Home({ listings }) {
               whileTap={{ scale: 0.95 }}  // Slight shrink effect while tapping/clicking
               transition={{ type: "spring", stiffness: 100 }}  // Smoother transition effect
             >
-              <Listing {...listing} />
+              <Listing {...listing} onShowComments={showComments}  />
             </motion.div>
           ))}
         </div>
+        
       </main>
       <section className="py-6 bg-gray-100">
         <div className="text-center">
@@ -48,6 +60,14 @@ export default function Home({ listings }) {
           <button className="px-4 py-2 rounded-md bg-emerald-500 text-white hover:bg-emerald-600 focus:ring focus:ring-emerald-200 focus:outline-none focus:ring-opacity-50">Sign Up</button> {/* Vivid emerald green button with interactive states */}
         </div>
       </section>
+
+      {isCommentModalOpen && (
+  <CommentModal
+    comments={activeComments}
+    title={activeListingTitle}
+    onClose={() => setCommentModalOpen(false)}
+  />
+)}
 
       {/* Footer Component */}
       <Footer />
