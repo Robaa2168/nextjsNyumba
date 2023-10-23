@@ -23,8 +23,8 @@ export default function Home({ listings }) {
       <Categories />
       {/* Main content with card style for listings */}
       <main className="container mx-auto p-4 sm:p-6 lg:p-8">
-        <div className="text-center my-8"> 
-          <h2 className="text-2xl sm:text-3xl lg:text-4xl font-semibold">Featured Listing</h2> 
+        <div className="text-center my-8">
+          <h2 className="text-2xl sm:text-3xl lg:text-4xl font-semibold">Featured Listing</h2>
         </div>
         {/* Listings grid */}
         <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-5">
@@ -43,16 +43,17 @@ export default function Home({ listings }) {
       </main>
       <section className="py-6 bg-gray-100">
         <div className="text-center">
-          <h2 className="text-2xl font-semibold mb-4">Join Our Community</h2>
-          <p className="mb-4">Sign up for more</p>
-          <button className="px-4 py-2 rounded-md bg-blue-500 text-white">Sign Up</button>
+          <h2 className="text-2xl font-semibold text-emerald-600 mb-4">Join Our Community</h2> {/* Lighter emerald green text */}
+          <p className="text-gray-500 mb-4">Sign up for more</p> {/* Standard gray for less important text */}
+          <button className="px-4 py-2 rounded-md bg-emerald-500 text-white hover:bg-emerald-600 focus:ring focus:ring-emerald-200 focus:outline-none focus:ring-opacity-50">Sign Up</button> {/* Vivid emerald green button with interactive states */}
         </div>
       </section>
+
       {/* Footer Component */}
       <Footer />
     </div>
   );
-          }
+}
 
 
 // Fetch data from the API route
