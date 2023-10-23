@@ -5,7 +5,7 @@ import { FiHeart, FiMessageCircle, FiShare } from 'react-icons/fi';
 import Image from 'next/image';
 
 
-function Listing({ imageUrl, title, description, price, featured, _id,likes   }) {
+function Listing({ imageUrl, title, description, price, featured, _id, likes }) {
     // It's better to start with likes, comments, and shares possibly coming from props,
     // allowing your component to be initialized with real data.
     const [likesCount, setLikesCount] = useState(likes);
@@ -34,7 +34,7 @@ function Listing({ imageUrl, title, description, price, featured, _id,likes   })
             const updatedListing = await res.json();
             setLikesCount(updatedListing.likes);
         } catch (error) {
-            setLikesCount(prevLikesCount => prevLikesCount - 1); 
+            setLikesCount(prevLikesCount => prevLikesCount - 1);
             console.error('Error liking listing:', error);
         }
     }, [_id]);
@@ -42,73 +42,40 @@ function Listing({ imageUrl, title, description, price, featured, _id,likes   })
 
     return (
         <div className="flex flex-col border rounded-lg overflow-hidden shadow-md relative group">
+
             {featured && <span className="absolute top-1 right-1 bg-red-500 text-white py-1 px-3 text-xs sm:text-sm font-bold uppercase rounded-full">Featured</span>}
-
-            {/* Adjust your image element like this */}
             <Image
-    src={imageUrl}
-    alt={title ? `Image of ${title}` : ""}
-    width={500}  // specify dimensions
-    height={500}  // specify dimensions
-    objectFit="cover"
-    quality={75}
-    className="
-transform 
-transition-transform 
-duration-300 
-ease-in-out 
-group-hover:scale-105
-"
-/>
+                src={imageUrl}
+                alt={title ? `Image of ${title}` : ""}
+                width={500}  // specify dimensions
+                height={500}  // specify dimensions
+                objectFit="cover"
+                quality={75}
+                className="transform transition-transform duration-300 ease-in-out group-hover:scale-105 group-hover:shadow-lg"
+            />
 
-
-
-            {/* It might be better to separate these buttons into a new component to keep your code DRY.
-          This new component could accept props like the icon, action, count, etc. */}
-            <div className="absolute top-1/4 right-4 space-y-2 flex flex-col items-center">
-                <button
-                    onClick={handleLike}
-                    className="bg-gray-800 rounded-full p-2 hover:bg-gray-700 focus:outline-none active:bg-gray-900 focus:ring-2 focus:ring-gray-600 focus-visible:ring-2 focus-visible:ring-gray-600"
-                >
-                    <FiHeart className="text-white text-2xl" />
-                </button>
-                <span className="text-white">{likesCount}</span>
-
-                <button
-                    /*onClick={handleComment}*/
-                    className="bg-gray-800 rounded-full p-2 hover:bg-gray-700 focus:outline-none active:bg-gray-900 focus:ring-2 focus:ring-gray-600 focus-visible:ring-2 focus-visible:ring-gray-600"
-                >
-                    <FiMessageCircle className="text-white text-2xl" />
-                </button>
-                <span className="text-white">{commentsList.length}</span>
-
-                <button
-                    /*onClick={handleShare}*/
-                    className="bg-gray-800 rounded-full p-2 hover:bg-gray-700 focus:outline-none active:bg-gray-900 focus:ring-2 focus:ring-gray-600 focus-visible:ring-2 focus-visible:ring-gray-600"
-                >
-                    <FiShare className="text-white text-2xl" />
-                </button>
-                <span className="text-white">{shares}</span>
-            </div>
-
-
-            {/* You may want to truncate text or handle overflow for very long titles or descriptions. */}
             <div className="p-2 sm:p-4">
-                <h2 className="text-lg sm:text-xl font-bold">{title}</h2>
-                <p className="text-gray-500 text-xs sm:text-sm sm:text-gray-600 line-clamp-3">
-                    {description}
-                </p>
-
-                <p className="text-md sm:text-lg font-semibold">Ksh:{price}</p>
-
-                <ul className="mt-2 space-y-1 sm:space-y-2">
-                    {commentsList.slice(0, 3).map((comment, index) => (
-                        <li key={index} className="text-xs sm:text-sm text-gray-500">- {comment}</li>
-                    ))}
-                </ul>
+                <h3 className="font-semibold text-base sm:text-lg mb-2 truncate">{title}</h3>
+                <p className="text-gray-600 mb-2 truncate border-b border-dotted">{description}</p>
+                <div className="flex flex-col sm:flex-row justify-between items-center mt-2">
+                    <span className="font-bold text-sm mb-2 sm:mb-0">KES{price}</span>
+                    <div className="flex space-x-2">
+                        <FiHeart
+                            className="text-red-500 cursor-pointer"
+                            onClick={handleLike}
+                        />
+                        <span>{likesCount}</span>
+                        <FiMessageCircle className="text-gray-500" />
+                        <span>{commentsList.length}</span>
+                        <FiShare className="text-gray-500" />
+                        <span>{shares}</span>
+                    </div>
+                </div>
             </div>
+
+
         </div>
     );
 }
 
-export default Listing;
+export default Listing

@@ -3,7 +3,10 @@ import Head from 'next/head';
 import Header from '../components/Header';
 import Footer from '../components/Footer';
 import Listing from '../components/Listing';
-
+import Hero from '../components/Hero';
+import Categories from '../components/Categories';
+import { motion } from 'framer-motion';
+import { FiSearch } from 'react-icons/fi';
 
 
 export default function Home({ listings }) {
@@ -13,28 +16,43 @@ export default function Home({ listings }) {
         <title>Airbnb Clone</title>
         <link rel="icon" href="/favicon.ico" />
       </Head>
-
       {/* Header Component */}
       <Header />
-
-      {/* Main content */}
+      {/* Hero Section Component */}
+      <Hero />
+      <Categories />
+      {/* Main content with card style for listings */}
       <main className="container mx-auto p-4 sm:p-6 lg:p-8">
-      
+        <div className="text-center my-8"> 
+          <h2 className="text-2xl sm:text-3xl lg:text-4xl font-semibold">Featured Listing</h2> 
+        </div>
         {/* Listings grid */}
-        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 sm:gap-5 lg:grid-cols-3 lg:gap-6">
+        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-5">
           {listings.map(listing => (
-            <div key={listing._id} className="relative">
+            <motion.div
+              key={listing._id}
+              className="relative rounded-lg overflow-hidden shadow-lg"
+              whileHover={{ scale: 1.05, boxShadow: "0px 3px 3px rgba(0,0,0,0.15)" }}  // Enhanced shadow effect on hover
+              whileTap={{ scale: 0.95 }}  // Slight shrink effect while tapping/clicking
+              transition={{ type: "spring", stiffness: 100 }}  // Smoother transition effect
+            >
               <Listing {...listing} />
-            </div>
+            </motion.div>
           ))}
         </div>
       </main>
-
+      <section className="py-6 bg-gray-100">
+        <div className="text-center">
+          <h2 className="text-2xl font-semibold mb-4">Join Our Community</h2>
+          <p className="mb-4">Sign up for more</p>
+          <button className="px-4 py-2 rounded-md bg-blue-500 text-white">Sign Up</button>
+        </div>
+      </section>
       {/* Footer Component */}
       <Footer />
     </div>
   );
-}
+          }
 
 
 // Fetch data from the API route
@@ -43,19 +61,15 @@ export async function getServerSideProps() {
     // Construct the URL using the environment variable
     const apiUrl = `${process.env.NEXT_PUBLIC_API_BASE_URL}/listings/listings`;
     const res = await fetch(apiUrl);
-
     // Check for any response errors
     if (!res.ok) {
       throw new Error(`Fetch failed with status: ${res.status}`);
     }
-
     const listings = await res.json();
-
     // Pass data to the page via props
     return { props: { listings } };
   } catch (error) {
     console.error("Error fetching listings:", error);
-
     // Return empty array as fallback or handle error as needed
     return { props: { listings: [] } };
   }
