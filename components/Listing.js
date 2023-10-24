@@ -6,20 +6,13 @@ import Image from 'next/image';
 import CommentModal from './CommentModal';
 
 
-function Listing({ imageUrl, title, description, price, featured, _id, likes, onShowComments }) {
+function Listing({ imageUrl, title, description, price, featured, _id, likes, comments, onShowComments }) {
     const [likesCount, setLikesCount] = useState(likes);
-    const [isCommentModalOpen, setCommentModalOpen] = useState(false);
-    const [commentsList, setCommentsList] = useState([
-        "Beautiful house!",
-        "I've stayed here before, it's amazing.",
-        "Worth every penny!"
-    ]); // If these comments are static, consider moving them outside of the component to avoid redeclaration on each render.
     const [shares, setShares] = useState(0);
-    const [isCommentsVisible, setCommentsVisible] = useState(false);
 
-    const showComments = () => {
-        // Invoke the passed-in prop with the current listing's comments and title.
-        onShowComments(commentsList, title); // we're now also passing the title
+    const showComments= () => {
+        // We're passing the listing's ID to the parent component to handle comment fetching.
+        onShowComments(_id, title);
     };
 
     const handleLike = useCallback(async () => {
@@ -78,7 +71,7 @@ function Listing({ imageUrl, title, description, price, featured, _id, likes, on
                             onClick={showComments} 
                         >
                             <FiMessageCircle className="text-gray-500 cursor-pointer" />
-                            <span className="text-xs sm:text-sm">{commentsList.length}</span>
+                            <span className="text-xs sm:text-sm">{comments}</span>
                         </button>
                         <button
                             className="flex items-center space-x-1"

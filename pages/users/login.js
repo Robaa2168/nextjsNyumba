@@ -27,19 +27,36 @@ const LoginPage = () => {
 
     const handleLogin = async (e) => {
         e.preventDefault();
-        setLoading(true); // Set loading to true when the process starts
-
-        // Simulate the login process here, including error handling and loading state management.
-        // This example doesn't integrate with a real backend service.
-        setTimeout(() => { // Just to simulate an async request
-            setLoading(false); // Turn off the loading indication
-            if (loginData.email === 'user@example.com' && loginData.password === 'password') {
-                router.push('/');
-            } else {
-                setError('Invalid login credentials. Please try again.');
+        setLoading(true);
+        setError('');
+    
+        try {
+            const res = await fetch('/api/auth/login', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify(loginData),
+            });
+    
+            const data = await res.json();
+    
+            if (!res.ok) {
+                throw new Error(data.message || 'Something went wrong');
             }
-        }, 2000);
+    
+            // Save token, you might want to save it in your state management system
+            localStorage.setItem('token', data.token);
+    
+            // Redirect user to dashboard or wherever you want
+            router.push('/dashboard');
+        } catch (error) {
+            setError(error.message);
+        } finally {
+            setLoading(false);
+        }
     };
+    
 
     return (
         <div className="min-h-screen flex items-center justify-center bg-emerald-50 py-12 px-4 sm:px-6 lg:px-8"> {/* using emerald theme */}

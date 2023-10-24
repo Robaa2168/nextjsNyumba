@@ -14,12 +14,35 @@ export default function Home({ listings }) {
   const [isCommentModalOpen, setCommentModalOpen] = useState(false);
   const [activeComments, setActiveComments] = useState([]);
   const [activeListingTitle, setActiveListingTitle] = useState('');
+  const [activeListingId, setActiveListingId] = useState(null);
 
- const showComments = (comments, title) => {
-    setActiveComments(comments);
-    setActiveListingTitle(title);
-    setCommentModalOpen(true);
+  const showComments = async (listingId, title) => {
+    try {
+      // Start a loading state here, if you have one.
+
+      // Request the comments for this specific listing from your server's endpoint.
+      const response = await fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL}/listings/comments?listing=${listingId}`);
+
+      if (!response.ok) {
+        throw new Error(`An error occurred: ${response.statusText}`);
+      }
+
+      const comments = await response.json();
+
+      // Set the comments in state to display them in your modal.
+      setActiveListingId(listingId);
+      setActiveComments(comments);
+      setActiveListingTitle(title);
+      setCommentModalOpen(true);
+
+    } catch (error) {
+      console.error("Could not fetch comments: ", error);
+      // Handle error by showing user feedback or a message.
+    } finally {
+      // End the loading state here, if you have one.
+    }
   };
+
 
   return (
     <div className="flex flex-col justify-between h-screen">
@@ -51,7 +74,7 @@ export default function Home({ listings }) {
             </motion.div>
           ))}
         </div>
-        
+
       </main>
       <section className="py-6 bg-gray-100">
         <div className="text-center">
@@ -62,12 +85,13 @@ export default function Home({ listings }) {
       </section>
 
       {isCommentModalOpen && (
-  <CommentModal
-    comments={activeComments}
-    title={activeListingTitle}
-    onClose={() => setCommentModalOpen(false)}
-  />
-)}
+        <CommentModal
+          listingId={activeListingId}
+          comments={activeComments}
+          title={activeListingTitle}
+          onClose={() => setCommentModalOpen(false)}
+        />
+      )}
 
       {/* Footer Component */}
       <Footer />

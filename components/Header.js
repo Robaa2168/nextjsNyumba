@@ -1,6 +1,7 @@
 // Header.js
 import React, { useState } from 'react';
 import { FiSearch, FiMenu, FiUser, FiLogIn } from 'react-icons/fi';
+import { FaHome } from 'react-icons/fa';
 import Link from 'next/link';
 
 
@@ -23,8 +24,11 @@ function Header() {
                     <div className="flex-1 flex items-center justify-between sm:items-stretch sm:justify-start">
                         <div className="flex-shrink-0 flex items-center">
                             {/* Logo or Branding */}
-                            <Link href="/">
+                            <Link href="/" passHref>
+                                <div className="flex items-center cursor-pointer">
+                                    <FaHome className="text-lg mr-2" />
                                     <span className="text-xl font-bold">Nyumba</span>
+                                </div>
                             </Link>
                         </div>
 
