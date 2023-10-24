@@ -1,9 +1,10 @@
 // components/CommentModal.js
 import { useState, React } from 'react';
-import { FaThumbsUp, FaThumbsDown } from 'react-icons/fa';
+import { FaThumbsUp, FaThumbsDown,FaSpinner } from 'react-icons/fa';
 
 
-const CommentModal = ({ listingId, comments, title, onClose }) => {
+
+const CommentModal = ({ listingId, comments, title, onClose, isLoading }) => { 
     const [newComment, setNewComment] = useState("");
     const [isSubmitting, setIsSubmitting] = useState(false);
 
@@ -17,7 +18,6 @@ const CommentModal = ({ listingId, comments, title, onClose }) => {
             // Prevent empty comments
             return;
         }
-
         setIsSubmitting(true); // Start submission (this disables the submit button)
         // Define a dummy username
         const dummyUsername = 'guest_user';  // You can choose any placeholder name for your scenario
@@ -59,12 +59,10 @@ const CommentModal = ({ listingId, comments, title, onClose }) => {
     return (
         <div className="fixed z-10 inset-0 overflow-y-auto" aria-labelledby="modal-title" role="dialog" aria-modal="true">
             <div className="flex items-center justify-center min-h-screen pt-4 px-4 pb-20 text-center">
-                {/* Overlay */}
                 <div className="fixed inset-0 transition-opacity" aria-hidden="true">
                     <div className="absolute inset-0 bg-gray-500 opacity-75"></div>
                 </div>
 
-                {/* This part is to trick the browser into centering the modal contents. */}
                 <span className="hidden sm:inline-block sm:align-middle sm:h-screen" aria-hidden="true">&#8203;</span>
 
                 {/* Modal */}
@@ -79,40 +77,58 @@ const CommentModal = ({ listingId, comments, title, onClose }) => {
 
                     {/* Comments List */}
                     <div className="px-4 py-3 overflow-auto" style={{ maxHeight: '500px' }}>
-                        {comments.map((comment, index) => (
-                            <div key={index} className="mb-3 border-b border-gray-100 pb-2">
-                                {/* Comment Content */}
-                                <div className="flex space-x-3">
-                                    <div className="flex-shrink-0">
-                                        <span className="inline-block h-10 w-10 rounded-full overflow-hidden bg-gray-100">
-                                            <svg className="h-full w-full text-gray-400" fill="currentColor" viewBox="0 0 24 24">
-                                                {/* SVG Placeholder */}
-                                            </svg>
-                                        </span>
-                                    </div>
-                                    <div>
-                                        <p className="text-sm text-gray-800">{comment.text}</p>
-                                        <div className="flex items-center text-xs text-gray-400">
-                                            <span>{comment.username}</span>
-                                            <span className="mx-1">&middot;</span>
-                                            <span>{new Date(comment.date).toLocaleDateString("en-US", {
-                                                year: 'numeric', month: 'long', day: 'numeric'
-                                            })}</span>
+                        {isLoading ? (
+                            <div className="flex justify-center items-center">
+                            <FaSpinner className="animate-spin" size={20} />
+                        </div>
+                        ) : comments.length > 0 ? (
+                            comments.map((comment, index) => (
+                                <div key={index} className="mb-3 border-b border-gray-200 pb-2">
+                                    {/* Comment Content */}
+                                    <div className="flex space-x-3 md:space-x-4">
+                                        <div className="flex-shrink-0">
+                                            {comment.avatar ? (
+                                                <img src={comment.avatar} alt="User Avatar" className="h-8 w-8 rounded-full md:h-10 md:w-10" />
+                                            ) : (
+                                                <span className="inline-block h-8 w-8 rounded-full overflow-hidden bg-gray-200 md:h-10 md:w-10">
+                                                    <svg className="h-full w-full text-gray-400" fill="currentColor" viewBox="0 0 24 24">
+                                                        {/* SVG Placeholder */}
+                                                    </svg>
+                                                </span>
+                                            )}
+                                        </div>
+                                        <div className="flex-1 min-w-0">
+                                            <p className="text-xs text-gray-700 md:text-sm mb-0.5">{comment.text}</p>
+                                            <div className="flex items-center text-xs text-gray-500">
+                                                <span className="font-medium">{comment.username}</span>
+                                                <span className="mx-1.5 md:mx-2">&middot;</span>
+                                                <span>{new Date(comment.date).toLocaleDateString("en-US", {
+                                                    year: 'numeric', month: 'short', day: 'numeric'
+                                                })}</span>
+                                            </div>
                                         </div>
                                     </div>
+                            
+                                    {/* Reactions */}
+                                    <div className="flex space-x-2 md:space-x-4 mt-2">
+                                        <button 
+                                            className="text-gray-500 hover:text-emerald-600 focus:outline-none flex items-center space-x-1 py-1 px-1.5 rounded-md transition hover:bg-emerald-50 active:bg-emerald-100 md:px-2">
+                                            <FaThumbsUp />
+                                            <span>{comment.likes || 0}</span>
+                                        </button>
+                                        <button 
+                                            className="text-gray-500 hover:text-red-500 focus:outline-none flex items-center space-x-1 py-1 px-1.5 rounded-md transition hover:bg-red-50 active:bg-red-100 md:px-2">
+                                            <FaThumbsDown />
+                                            <span>{comment.dislikes || 0}</span>
+                                        </button>
+                                    </div>
                                 </div>
-
-                                {/* Reactions */}
-                                <div className="flex space-x-3 mt-2">
-                                    <button className="text-gray-400 hover:text-emerald-600 focus:outline-none flex items-center">
-                                        <FaThumbsUp className="mr-1" /> {comment.likes || 0}
-                                    </button>
-                                    <button className="text-gray-400 hover:text-red-600 focus:outline-none flex items-center">
-                                        <FaThumbsDown className="mr-1" /> {comment.dislikes || 0}
-                                    </button>
-                                </div>
-                            </div>
-                        ))}
+                            ))
+                            
+                            
+                        ) : (
+                            <p className="text-center text-gray-500">No comments yet.</p>
+                        )}
                     </div>
 
                     {/* Comment Input */}
@@ -123,11 +139,12 @@ const CommentModal = ({ listingId, comments, title, onClose }) => {
                             value={newComment}
                             onChange={handleCommentChange}
                             placeholder="Add a comment..."
+                            disabled={isLoading}  // Disable input when loading
                         ></textarea>
                         <button
                             className="mt-2 px-4 py-2 bg-emerald-500 text-white rounded hover:bg-emerald-600 focus:ring-2 focus:ring-emerald-600 focus:ring-opacity-50"
                             onClick={handleCommentSubmit}
-                            disabled={isSubmitting}
+                            disabled={isSubmitting || isLoading}  // Disable button when submitting or loading
                         >
                             {isSubmitting ? 'Submitting...' : 'Submit'}
                         </button>
@@ -139,6 +156,4 @@ const CommentModal = ({ listingId, comments, title, onClose }) => {
 };
 
 export default CommentModal;
-
-
 

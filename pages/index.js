@@ -6,7 +6,7 @@ import Listing from '../components/Listing';
 import Hero from '../components/Hero';
 import Categories from '../components/Categories';
 import { motion } from 'framer-motion';
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import CommentModal from '../components/CommentModal';
 
 
@@ -15,33 +15,31 @@ export default function Home({ listings }) {
   const [activeComments, setActiveComments] = useState([]);
   const [activeListingTitle, setActiveListingTitle] = useState('');
   const [activeListingId, setActiveListingId] = useState(null);
+  const [loadingComments, setLoadingComments] = useState(false);
 
   const showComments = async (listingId, title) => {
+    // Open the modal right away
+    setActiveListingId(listingId);
+    setActiveListingTitle(title);
+    setCommentModalOpen(true);
+    setLoadingComments(true); // Set loading to true since we're starting to fetch
+
     try {
-      // Start a loading state here, if you have one.
-
-      // Request the comments for this specific listing from your server's endpoint.
+      // Fetch the comments as before
       const response = await fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL}/listings/comments?listing=${listingId}`);
-
       if (!response.ok) {
         throw new Error(`An error occurred: ${response.statusText}`);
       }
-
       const comments = await response.json();
-
-      // Set the comments in state to display them in your modal.
-      setActiveListingId(listingId);
       setActiveComments(comments);
-      setActiveListingTitle(title);
-      setCommentModalOpen(true);
-
     } catch (error) {
       console.error("Could not fetch comments: ", error);
       // Handle error by showing user feedback or a message.
     } finally {
-      // End the loading state here, if you have one.
+      setLoadingComments(false); // End loading since fetching is done
     }
-  };
+};
+
 
 
   return (
@@ -70,7 +68,7 @@ export default function Home({ listings }) {
               whileTap={{ scale: 0.95 }}  // Slight shrink effect while tapping/clicking
               transition={{ type: "spring", stiffness: 100 }}  // Smoother transition effect
             >
-              <Listing {...listing} onShowComments={showComments}  />
+              <Listing {...listing} onShowComments={showComments} />
             </motion.div>
           ))}
         </div>
@@ -90,6 +88,7 @@ export default function Home({ listings }) {
           comments={activeComments}
           title={activeListingTitle}
           onClose={() => setCommentModalOpen(false)}
+          isLoading={loadingComments}
         />
       )}
 
