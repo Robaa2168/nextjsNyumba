@@ -1,12 +1,63 @@
 // components/CommentModal.js
-import { useState, React } from 'react';
-import { FaThumbsUp, FaThumbsDown,FaSpinner } from 'react-icons/fa';
+import { useState, useEffect, useCallback, React } from 'react';
+import { FaThumbsUp, FaThumbsDown, FaSpinner } from 'react-icons/fa';
+import Avatar from 'react-avatar';
 
 
 
-const CommentModal = ({ listingId, comments, title, onClose, isLoading }) => { 
+const CommentModal = ({ listingId, comments: initialComments, title, onClose, isLoading }) => {
+    // 1. Define a new state for comments.
+    const [comments, setComments] = useState(initialComments);
     const [newComment, setNewComment] = useState("");
     const [isSubmitting, setIsSubmitting] = useState(false);
+
+
+    useEffect(() => {
+        setComments(initialComments);
+    }, [initialComments]);
+
+    const handleReaction = useCallback(async (action, commentId) => {
+        // Find the index of the comment in the comments array.
+        const commentIndex = comments.findIndex(c => c._id === commentId);
+        if (commentIndex < 0) return;
+
+        // Optimistically update the UI.
+        setComments(prevComments => {
+            let updatedComments = [...prevComments];
+            updatedComments[commentIndex] = {
+                ...updatedComments[commentIndex],
+                [action === 'like' ? 'likes' : 'dislikes']: prevComments[commentIndex][action === 'like' ? 'likes' : 'dislikes'] + 1
+            };
+            return updatedComments;
+        });
+        try {
+            // Here, you make the API call.
+            const res = await fetch('/api/comments/comment_reactions', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ commentId, action }),
+            });
+
+            if (!res.ok) {
+                throw new Error(`An error occurred: ${res.status}`);
+            }
+
+            // If you need to do anything with the response data, do it here.
+            // ...
+        } catch (error) {
+            console.error(`Error during ${action} action:`, error);
+
+            // Revert the optimistic update by setting the state.
+            setComments(prevComments => {
+                let updatedComments = [...prevComments];
+                updatedComments[commentIndex] = {
+                    ...updatedComments[commentIndex],
+                    [action === 'like' ? 'likes' : 'dislikes']: prevComments[commentIndex][action === 'like' ? 'likes' : 'dislikes'] - 1
+                };
+                return updatedComments;
+            });
+        }
+    }, [comments]);
 
 
     const handleCommentChange = (event) => {
@@ -74,13 +125,31 @@ const CommentModal = ({ listingId, comments, title, onClose, isLoading }) => {
                             &times;
                         </button>
                     </div>
+{/* New Section: Respectful Interaction Reminder */}
+<div className="bg-gray-100  p-3" role="alert">
+    <div className="flex items-center">
+        {/* Icon */}
+        <div className="py-1">
+            <svg className="fill-current h-6 w-6 text-gray-500 mr-4" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20">
+                <path d="M10 2a8 8 0 100 16 8 8 0 000-16zm0 12a1 1 0 110-2 1 1 0 010 2zm0-3a1 1 0 01-1-1V7a1 1 0 112 0v3a1 1 0 01-1 1z"/>
+            </svg>
+        </div>
+        {/* Message */}
+        <div>
+            <p className="text-sm text-gray-700">
+                Healthy and constructive discussions leads to a better community for everyone.
+            </p>
+        </div>
+    </div>
+</div>
+
 
                     {/* Comments List */}
                     <div className="px-4 py-3 overflow-auto" style={{ maxHeight: '500px' }}>
                         {isLoading ? (
                             <div className="flex justify-center items-center">
-                            <FaSpinner className="animate-spin" size={20} />
-                        </div>
+                                <FaSpinner className="animate-spin" size={20} />
+                            </div>
                         ) : comments.length > 0 ? (
                             comments.map((comment, index) => (
                                 <div key={index} className="mb-3 border-b border-gray-200 pb-2">
@@ -90,11 +159,15 @@ const CommentModal = ({ listingId, comments, title, onClose, isLoading }) => {
                                             {comment.avatar ? (
                                                 <img src={comment.avatar} alt="User Avatar" className="h-8 w-8 rounded-full md:h-10 md:w-10" />
                                             ) : (
-                                                <span className="inline-block h-8 w-8 rounded-full overflow-hidden bg-gray-200 md:h-10 md:w-10">
-                                                    <svg className="h-full w-full text-gray-400" fill="currentColor" viewBox="0 0 24 24">
-                                                        {/* SVG Placeholder */}
-                                                    </svg>
-                                                </span>
+                                                // Using the Avatar component to generate a placeholder
+                                                <Avatar
+                                                    className="inline-block h-8 w-8 rounded-full overflow-hidden bg-gray-200 md:h-10 md:w-10"
+                                                    name={comment.username}
+                                                    round={true}
+                                                    size="30"
+                                                    textSizeRatio={2.5}
+                                                />
+
                                             )}
                                         </div>
                                         <div className="flex-1 min-w-0">
@@ -108,15 +181,17 @@ const CommentModal = ({ listingId, comments, title, onClose, isLoading }) => {
                                             </div>
                                         </div>
                                     </div>
-                            
+
                                     {/* Reactions */}
                                     <div className="flex space-x-2 md:space-x-4 mt-2">
-                                        <button 
+                                        <button
+                                            onClick={() => handleReaction('like', comment._id)}
                                             className="text-gray-500 hover:text-emerald-600 focus:outline-none flex items-center space-x-1 py-1 px-1.5 rounded-md transition hover:bg-emerald-50 active:bg-emerald-100 md:px-2">
                                             <FaThumbsUp />
                                             <span>{comment.likes || 0}</span>
                                         </button>
-                                        <button 
+                                        <button
+                                            onClick={() => handleReaction('dislike', comment._id)}
                                             className="text-gray-500 hover:text-red-500 focus:outline-none flex items-center space-x-1 py-1 px-1.5 rounded-md transition hover:bg-red-50 active:bg-red-100 md:px-2">
                                             <FaThumbsDown />
                                             <span>{comment.dislikes || 0}</span>
@@ -124,8 +199,7 @@ const CommentModal = ({ listingId, comments, title, onClose, isLoading }) => {
                                     </div>
                                 </div>
                             ))
-                            
-                            
+
                         ) : (
                             <p className="text-center text-gray-500">No comments yet.</p>
                         )}
