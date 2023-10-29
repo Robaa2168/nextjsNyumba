@@ -51,7 +51,6 @@ const LoginPage = () => {
             localStorage.setItem('token', data.token);
             signIn(data.user);
     
-            // Redirect user to dashboard or wherever you want
             router.push('/users/dashboard');
         } catch (error) {
             setError(error.message);
