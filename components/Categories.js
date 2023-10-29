@@ -10,7 +10,7 @@ function Categories() {
         { name: 'Apartments', icon: FaBuilding },
         { name: 'Cabins', icon: FaTree },
         { name: 'Cottages', icon: FaHotel },
-        { name: 'Unique Stays', icon: FaStarAndCrescent }, // This is just an example. Choose icons that best represent your categories.
+        { name: 'Unique Stays', icon: FaStarAndCrescent }, 
     ];
 
     const [isMobile, setIsMobile] = useState(false);

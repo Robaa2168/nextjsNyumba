@@ -1,11 +1,13 @@
 // pages/login.js
 import { useState } from 'react';
+import { useAuth } from '../../contexts/AuthContext'; 
 import { useRouter } from 'next/router';
 import { AiOutlineMail, AiOutlineEye, AiOutlineEyeInvisible, AiOutlineLock } from 'react-icons/ai'; // Importing icons
 import { FaSpinner } from 'react-icons/fa';
 
 const LoginPage = () => {
     const router = useRouter();
+    const { signIn } = useAuth();
     const [loginData, setLoginData] = useState({ email: '', password: '' });
     const [error, setError] = useState('');
     const [loading, setLoading] = useState(false);
@@ -47,9 +49,10 @@ const LoginPage = () => {
     
             // Save token, you might want to save it in your state management system
             localStorage.setItem('token', data.token);
+            signIn(data.user);
     
             // Redirect user to dashboard or wherever you want
-            router.push('/dashboard');
+            router.push('/users/dashboard');
         } catch (error) {
             setError(error.message);
         } finally {

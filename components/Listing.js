@@ -4,11 +4,15 @@ import React, { useState, useCallback } from 'react'; // Import useCallback
 import { FiHeart, FiMessageCircle, FiShare } from 'react-icons/fi';
 import Image from 'next/image';
 import CommentModal from './CommentModal';
+import { useRouter } from 'next/router';
+import { useAuth } from '../contexts/AuthContext'; 
 
 
 function Listing({ imageUrl, title, description, price, featured, _id, likes, comments, onShowComments }) {
     const [likesCount, setLikesCount] = useState(likes);
     const [shares, setShares] = useState(0);
+    const { user } = useAuth(); 
+    const router = useRouter();
 
     const showComments= () => {
         // We're passing the listing's ID to the parent component to handle comment fetching.
@@ -16,6 +20,10 @@ function Listing({ imageUrl, title, description, price, featured, _id, likes, co
     };
 
     const handleLike = useCallback(async () => {
+        if (!user) {
+            router.push('/users/login'); 
+            return;
+        }
         setLikesCount(prevLikesCount => prevLikesCount + 1);
         try {
             const res = await fetch('/api/listings/like', {

@@ -2,6 +2,9 @@
 import { useState, useEffect, useCallback, React } from 'react';
 import { FaThumbsUp, FaThumbsDown, FaSpinner } from 'react-icons/fa';
 import Avatar from 'react-avatar';
+import { useRouter } from 'next/router';
+import { useAuth } from '../contexts/AuthContext';
+
 
 
 
@@ -10,6 +13,8 @@ const CommentModal = ({ listingId, comments: initialComments, title, onClose, is
     const [comments, setComments] = useState(initialComments);
     const [newComment, setNewComment] = useState("");
     const [isSubmitting, setIsSubmitting] = useState(false);
+    const router = useRouter();
+    const { user } = useAuth();
 
 
     useEffect(() => {
@@ -17,6 +22,10 @@ const CommentModal = ({ listingId, comments: initialComments, title, onClose, is
     }, [initialComments]);
 
     const handleReaction = useCallback(async (action, commentId) => {
+        if (!user) {
+            router.push('/users/login'); 
+            return;
+        }
         // Find the index of the comment in the comments array.
         const commentIndex = comments.findIndex(c => c._id === commentId);
         if (commentIndex < 0) return;
@@ -65,20 +74,28 @@ const CommentModal = ({ listingId, comments: initialComments, title, onClose, is
     };
 
     const handleCommentSubmit = async () => {
+        if (!user) {
+            router.push('/users/login');
+            return;
+        }
+    
         if (!newComment.trim()) {
             // Prevent empty comments
             return;
         }
+    
         setIsSubmitting(true); // Start submission (this disables the submit button)
-        // Define a dummy username
-        const dummyUsername = 'guest_user';  // You can choose any placeholder name for your scenario
-
+    
+        // Now, we'll use the username from the user context
+        const usernameFromContext = user.username; 
+    
         try {
             const commentPayload = {
-                listing: listingId, // Change from "listingId" to "listing" to match server's expected key
+                listing: listingId,
                 text: newComment.trim(),
-                username: dummyUsername, // Using the dummy username
+                username: usernameFromContext, 
             };
+    
             // Send the comment to your server
             const response = await fetch('/api/listings/comments', {
                 method: 'POST',
@@ -87,17 +104,17 @@ const CommentModal = ({ listingId, comments: initialComments, title, onClose, is
                 },
                 body: JSON.stringify(commentPayload),
             });
-
+    
             if (!response.ok) {
                 throw new Error('Could not post comment');
             }
-
+    
             const returnedComment = await response.json(); // Or handle the response as needed in your case
-
+    
             // Optionally, add the new comment to the existing comments in the UI
             comments.push(returnedComment); // This depends on your server's response
             setNewComment(""); // Clear the input field
-
+    
         } catch (error) {
             console.error('Failed to post comment:', error);
             // Handle the error (e.g., show a notification or message)
@@ -105,7 +122,7 @@ const CommentModal = ({ listingId, comments: initialComments, title, onClose, is
             setIsSubmitting(false); // End submission (this re-enables the submit button)
         }
     };
-
+    
 
     return (
         <div className="fixed z-10 inset-0 overflow-y-auto" aria-labelledby="modal-title" role="dialog" aria-modal="true">
@@ -125,23 +142,23 @@ const CommentModal = ({ listingId, comments: initialComments, title, onClose, is
                             &times;
                         </button>
                     </div>
-{/* New Section: Respectful Interaction Reminder */}
-<div className="bg-gray-100  p-3" role="alert">
-    <div className="flex items-center">
-        {/* Icon */}
-        <div className="py-1">
-            <svg className="fill-current h-6 w-6 text-gray-500 mr-4" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20">
-                <path d="M10 2a8 8 0 100 16 8 8 0 000-16zm0 12a1 1 0 110-2 1 1 0 010 2zm0-3a1 1 0 01-1-1V7a1 1 0 112 0v3a1 1 0 01-1 1z"/>
-            </svg>
-        </div>
-        {/* Message */}
-        <div>
-            <p className="text-sm text-gray-700">
-                Healthy and constructive discussions leads to a better community for everyone.
-            </p>
-        </div>
-    </div>
-</div>
+                    {/* New Section: Respectful Interaction Reminder */}
+                    <div className="bg-gray-100  p-3" role="alert">
+                        <div className="flex items-center">
+                            {/* Icon */}
+                            <div className="py-1">
+                                <svg className="fill-current h-6 w-6 text-gray-500 mr-4" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20">
+                                    <path d="M10 2a8 8 0 100 16 8 8 0 000-16zm0 12a1 1 0 110-2 1 1 0 010 2zm0-3a1 1 0 01-1-1V7a1 1 0 112 0v3a1 1 0 01-1 1z" />
+                                </svg>
+                            </div>
+                            {/* Message */}
+                            <div>
+                                <p className="text-sm text-gray-700">
+                                    Healthy and constructive discussions leads to a better community for everyone.
+                                </p>
+                            </div>
+                        </div>
+                    </div>
 
 
                     {/* Comments List */}

@@ -38,14 +38,14 @@ export default function Home({ listings }) {
     } finally {
       setLoadingComments(false); // End loading since fetching is done
     }
-};
+  };
 
 
 
   return (
     <div className="flex flex-col justify-between h-screen">
       <Head>
-        <title>Airbnb Clone</title>
+        <title>ViewNyumba</title>
         <link rel="icon" href="/favicon.ico" />
       </Head>
       {/* Header Component */}
@@ -74,13 +74,7 @@ export default function Home({ listings }) {
         </div>
 
       </main>
-      <section className="py-6 bg-gray-100">
-        <div className="text-center">
-          <h2 className="text-2xl font-semibold text-emerald-600 mb-4">Join Our Community</h2> {/* Lighter emerald green text */}
-          <p className="text-gray-500 mb-4">Sign up for more</p> {/* Standard gray for less important text */}
-          <button className="px-4 py-2 rounded-md bg-emerald-500 text-white hover:bg-emerald-600 focus:ring focus:ring-emerald-200 focus:outline-none focus:ring-opacity-50">Sign Up</button> {/* Vivid emerald green button with interactive states */}
-        </div>
-      </section>
+
 
       {isCommentModalOpen && (
         <CommentModal
