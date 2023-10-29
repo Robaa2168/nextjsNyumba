@@ -29,7 +29,7 @@ const Dashboard = () => {
         return (
             <div className="flex h-screen">
                 <div className="m-auto">
-                    <CircleLoader color={"#123abc"} loading={true} size={150} />
+                <CircleLoader color={"#50C878"} loading={true} size={150} />
                 </div>
             </div>
         );

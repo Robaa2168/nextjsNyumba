@@ -1,4 +1,6 @@
 // pages/index.js
+import React, { useState, useEffect } from 'react';
+import CircleLoader from 'react-spinners/CircleLoader';
 import Head from 'next/head';
 import Header from '../components/Header';
 import Footer from '../components/Footer';
@@ -6,11 +8,12 @@ import Listing from '../components/Listing';
 import Hero from '../components/Hero';
 import Categories from '../components/Categories';
 import { motion } from 'framer-motion';
-import React, { useState, useEffect } from 'react';
 import CommentModal from '../components/CommentModal';
 
 
-export default function Home({ listings }) {
+export default function Home({ listings: initialListings }) {
+  const [localListings, setListings] = useState(initialListings || []);
+  const [isLoading, setIsLoading] = useState(true); 
   const [isCommentModalOpen, setCommentModalOpen] = useState(false);
   const [activeComments, setActiveComments] = useState([]);
   const [activeListingTitle, setActiveListingTitle] = useState('');
@@ -41,6 +44,41 @@ export default function Home({ listings }) {
   };
 
 
+  useEffect(() => {
+    // Only run this effect if initialListings is not provided (meaning you have to fetch it)
+    if (!initialListings) {
+      const fetchData = async () => {
+        setIsLoading(true);
+        try {
+          // Fetch your listings here and set them
+          const response = await fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL}/listings/listings`);
+          if (!response.ok) throw new Error(response.statusText);
+
+          const data = await response.json();
+          setListings(data);  // Updates localListings
+        } catch (error) {
+          console.error("Error fetching data: ", error);
+        } finally {
+          setIsLoading(false);
+        }
+      };
+
+      fetchData();
+    }
+  }, []);
+
+
+  if (isLoading) {
+    return (
+      <div className="flex h-screen">
+        <div className="m-auto">
+          {/* Changing color to emerald */}
+          <CircleLoader color={"#50C878"} loading={true} size={150} />
+        </div>
+      </div>
+    );
+  }
+  
 
   return (
     <div className="flex flex-col justify-between h-screen">
@@ -60,7 +98,7 @@ export default function Home({ listings }) {
         </div>
         {/* Listings grid */}
         <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-5">
-          {listings.map(listing => (
+          {localListings.map(listing => (
             <motion.div
               key={listing._id}
               className="relative rounded-lg overflow-hidden shadow-lg"
@@ -93,23 +131,5 @@ export default function Home({ listings }) {
 }
 
 
-// Fetch data from the API route
-export async function getServerSideProps() {
-  try {
-    // Construct the URL using the environment variable
-    const apiUrl = `${process.env.NEXT_PUBLIC_API_BASE_URL}/listings/listings`;
-    const res = await fetch(apiUrl);
-    // Check for any response errors
-    if (!res.ok) {
-      throw new Error(`Fetch failed with status: ${res.status}`);
-    }
-    const listings = await res.json();
-    // Pass data to the page via props
-    return { props: { listings } };
-  } catch (error) {
-    console.error("Error fetching listings:", error);
-    // Return empty array as fallback or handle error as needed
-    return { props: { listings: [] } };
-  }
-}
+
 
