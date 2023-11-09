@@ -10,7 +10,7 @@ export default async function handler(req, res) {
   }
 
   if (!commentId || !['like', 'dislike'].includes(action)) {
-    return res.status(400).json({ message: 'Comment ID and valid action are required' });  // Bad Request
+    return res.status(400).json({ message: 'Comment ID and valid action are required' }); 
   }
 
   await connectDb();

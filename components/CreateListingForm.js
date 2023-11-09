@@ -1,42 +1,153 @@
 // components/CreateListingForm.js
-import React, { useState } from 'react';
-import { CameraIcon, StarIcon } from '@heroicons/react/24/outline';  // Import icons from Heroicons
+import React, { useState, useRef, useEffect} from 'react';
+import axios from 'axios';
+import { useRouter } from 'next/router';
+import { useAuth } from '../contexts/AuthContext';
+import { FaSpinner } from 'react-icons/fa';
 
 function CreateListingForm() {
-  // Set initial state for form inputs
-  const [successMessage, setSuccessMessage] = useState(null);  // Success feedback
-  const [errorMessage, setErrorMessage] = useState(null);
 
-  const [formData, setFormData] = useState({
+  const router = useRouter();
+  const { user } = useAuth();
+  const imageInputRef = useRef(null);
+  const [successMessage, setSuccessMessage] = useState(null);
+  const [errorMessage, setErrorMessage] = useState(null);
+  const [categories, setCategories] = useState([]);
+  const [isLoading, setIsLoading] = useState(false);
+
+  const initialFormData = {
     title: '',
     description: '',
-    imageUrl: '',
+    imageUrl: [],
+    category: '',
     price: '',
     featured: false,
-  });
+    contact: {
+      phone: '',
+      email: '',
+    },
+    managementType: '',
+    rentDeadline: 1,
+    location: {
+      estate: '',
+      landmark: '',
+      subCounty: '',
+      city: 'Nairobi',
+      country: 'Kenya',
+      coordinates: {
+        lat: 0,
+        lng: 0,
+      },
+    },
+    amenities: {
+      wifi: false,
+      parking: 'Limited',
+      petsAllowed: false,
+    },
+    accessibility: {
+      wheelchair: false,
+      elevator: false,
+    },
+    policies: {
+      cancellation: '',
+      houseRules: '',
+    },
+    additionalPricing: {
+      cleaningFee: 0,
+      deposit: 0,
+      extraPersonFee: 0,
+    },
+    capacity: {
+      guests: 1,
+      bedrooms: 1,
+      beds: 1,
+      baths: 1,
+    },
+    availability: true,
+  };
+
+  const [formData, setFormData] = useState(initialFormData);
 
   // Function to update state as user inputs data
   const handleChange = (e) => {
-    const { name, value } = e.target;
-    setFormData((prev) => ({
-      ...prev,
-      [name]: value,
+    const { name, value, type, checked } = e.target;
+  
+    const setValue = (name, value, prevFormData) => {
+      const keys = name.split('.');
+      let current = prevFormData;
+      for (let i = 0; i < keys.length - 1; i++) {
+        current = current[keys[i]];
+      }
+      current[keys[keys.length - 1]] = value;
+    };
+  
+    setFormData((prevFormData) => {
+      const newData = { ...prevFormData };
+      if (type === 'checkbox') {
+        setValue(name, checked, newData);
+      } else {
+        setValue(name, value, newData);
+      }
+      return newData;
+    });
+  };
+  
+
+
+  const handleFileChange = (e) => {
+    // Update the state with the selected files
+    setFormData((prevFormData) => ({
+      ...prevFormData,
+      imageUrl: [...prevFormData.imageUrl, ...e.target.files]
     }));
   };
 
-  // Function to handle form submission
+  const uploadImages = async () => {
+    const urls = [];
+
+    for (const file of formData.imageUrl) {
+      const data = new FormData();
+      data.append('file', file);
+      data.append('upload_preset', 'ml_default');
+      data.append('cloud_name', 'dx6jw8k0m');
+
+      try {
+        const response = await axios.post('https://api.cloudinary.com/v1_1/dx6jw8k0m/image/upload', data);
+        urls.push(response.data.secure_url);
+      } catch (error) {
+        // Handle errors, e.g., log to console or set an error message
+        console.error('Error uploading image:', error);
+        throw new Error('Failed to upload images');
+      }
+    }
+
+    return urls;
+  };
+
   const handleSubmit = async (e) => {
     e.preventDefault();
-
-    // Clear out any previous messages
-    setSuccessMessage(null);
+    setIsLoading(true); 
     setErrorMessage(null);
+    setSuccessMessage('Creating...'); 
 
     try {
+      const imageUrls = await uploadImages(); // Upload images first
+      // Retrieve the JWT token from wherever it's stored (e.g., localStorage)
+      const token = localStorage.getItem('token');
+
+      // Include the image URLs in the form data to be sent to the server
+      const fullFormData = {
+        ...formData,
+        imageUrl: imageUrls,
+      };
+
       const res = await fetch('/api/listings/create', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(formData),
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`,
+        },
+        body: JSON.stringify(fullFormData),
       });
 
       if (!res.ok) {
@@ -44,111 +155,330 @@ function CreateListingForm() {
       }
 
       const data = await res.json();
-
-      // Show success message from response or a default success message
       setSuccessMessage(data.message || 'Listing created successfully!');
 
-      // Clear the form after successful submission
-      setFormData({ title: '', description: '', imageUrl: '', price: '', featured: false });
+      // Reset form fields here
+      setFormData(initialFormData);
 
-      // ... additional actions like redirection could follow here
     } catch (error) {
-      // Display a user-friendly error message
       setErrorMessage('An error occurred while submitting the form. Please try again.');
       console.error('Error submitting form', error);
-    }
-  };
+    } finally {
+    setIsLoading(false); 
+  }
+};
+
+  useEffect(() => {
+    // Declare the async function inside the useEffect
+    const fetchCategories = async () => {
+        try {
+            // Await the axios call and get the response
+            const response = await axios.get('/api/categories/get_categories');
+            // Update state with the fetched categories
+            setCategories(response.data.data); // Make sure this matches the shape of your response
+        } catch (error) {
+            // Log and set error if the fetch fails
+            console.error('Error fetching categories:', error);
+            setErrorMessage('Failed to load categories.');
+        }
+    };
+
+    // Call the async function
+    fetchCategories();
+}, []); // The empty dependency array means this effect will only run once on component mount
+
 
 
   return (
-    <form onSubmit={handleSubmit} className="space-y-6">
-      {/* Success and Error Messages */}
-      {successMessage && (
-        <div className="p-4 bg-green-100 border-l-4 border-green-500 text-green-700">
-          <p className="font-semibold">{successMessage}</p>
-        </div>
-      )}
+    <form className="w-full max-w-3xl bg-white p-8 border border-emerald-200 rounded-md shadow-md" onSubmit={handleSubmit} >
+      {/* Conditionally render error or success messages */}
       {errorMessage && (
-        <div className="p-4 bg-red-100 border-l-4 border-red-500 text-red-700">
-          <p className="font-semibold">{errorMessage}</p>
+        <div className="mb-4 text-center p-2 bg-red-100 text-red-700 border border-red-200 rounded">
+          {errorMessage}
         </div>
       )}
+      {successMessage && (
+        <div className="mb-4 text-center p-2 bg-green-100 text-green-700 border border-green-200 rounded">
+          {successMessage}
+        </div>
+      )}
+      <div className="flex justify-center items-center mb-4 w-full">
+        <label htmlFor="image" className="block text-emerald-700 text-sm font-bold mb-2 w-full">
+          <label htmlFor="image-upload" className="block text-emerald-700 text-sm font-bold mb-2 w-full">
+            <div className="flex flex-col items-center justify-center border-2 border-dashed border-gray-300 rounded-lg p-6 cursor-pointer hover:border-emerald-500 transition-colors">
+              <svg className="mx-auto h-12 w-12 text-gray-400" stroke="currentColor" fill="none" viewBox="0 0 48 48" aria-hidden="true">
+                <path d="M28 8H12a4 4 0 00-4 4v20m32-12v8m0 0v8a4 4 0 01-4 4H8m36-12h-4m4 0H20" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+              </svg>
+              <span className="mt-2 block text-sm font-medium text-gray-900">
+                Drag files to upload or click here
+              </span>
+              <input
+                id="image-upload"
+                type="file"
+                name="image"
+                onChange={handleFileChange}
+                multiple
+                className="hidden" // Hide the actual input
+              />
+            </div>
+          </label>
 
-      {/* Title Input */}
-      <div>
-        <input
-          type="text"
-          name="title"
-          value={formData.title}
-          onChange={handleChange}
-          placeholder="Title"
-          required
-          className="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-emerald-500 focus:border-emerald-500 sm:text-sm"
-        />
-      </div>
-
-      {/* Description Input */}
-      <div>
-        <textarea
-          name="description"
-          value={formData.description}
-          onChange={handleChange}
-          placeholder="Description"
-          required
-          rows="3"
-          className="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-emerald-500 focus:border-emerald-500 sm:text-sm"
-        ></textarea>
-      </div>
-
-      {/* Image URL Input */}
-      <div>
-        <input
-          type="text"
-          name="imageUrl"
-          value={formData.imageUrl}
-          onChange={handleChange}
-          placeholder="Image URL"
-          required
-          className="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-emerald-500 focus:border-emerald-500 sm:text-sm"
-        />
-      </div>
-
-      {/* Price Input */}
-      <div>
-        <input
-          type="number"
-          name="price"
-          value={formData.price}
-          onChange={handleChange}
-          placeholder="Price"
-          required
-          className="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-emerald-500 focus:border-emerald-500 sm:text-sm"
-        />
-      </div>
-
-      {/* Featured Checkbox */}
-      <div className="flex items-center">
-        <input
-          type="checkbox"
-          name="featured"
-          checked={formData.featured}
-          onChange={(e) => setFormData({ ...formData, featured: e.target.checked })}
-          className="h-4 w-4 text-emerald-600 focus:ring-emerald-500 border-gray-300 rounded"
-        />
-        <label htmlFor="featured" className="ml-2 block text-sm text-gray-900">
-          Featured
         </label>
-        <StarIcon className="h-5 w-5 text-emerald-500 ml-2" />
       </div>
+
+      {/* Title */}
+      <div className="mb-4">
+        <label htmlFor="title" className="block text-emerald-700 text-sm font-bold mb-2">Title:</label>
+        <input type="text" name="title" value={formData.title} onChange={handleChange} className="shadow border rounded w-full py-2 px-3 text-grey-darker" />
+      </div>
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+
+{/* Category Dropdown */}
+<div className="mb-4">
+  <label htmlFor="category" className="block text-emerald-700 text-sm font-bold mb-2">Category:</label>
+  <select
+    name="category"
+    value={formData.category}
+    onChange={handleChange}
+    className="shadow border rounded w-full py-2 px-3 text-grey-darker"
+  >
+    <option value="">Select a category</option>
+    {categories.map((category) => (
+      <option key={category._id} value={category._id}>{category.name}</option>
+    ))}
+  </select>
+</div>
+
+        {/* Price */}
+        <div className="mb-4">
+          <label htmlFor="price" className="block text-emerald-700 text-sm font-bold mb-2">Price:</label>
+          <input type="number" name="price" value={formData.price} onChange={handleChange} className="shadow border rounded w-full py-2 px-3 text-grey-darker" />
+        </div>
+
+
+        {/* Contact Phone */}
+        <div className="mb-4">
+          <label htmlFor="contact.phone" className="block text-emerald-700 text-sm font-bold mb-2">Phone:</label>
+          <input type="tel" name="contact.phone" value={formData.contact.phone} onChange={handleChange} className="shadow border rounded w-full py-2 px-3 text-grey-darker" />
+        </div>
+
+        {/* Contact Email */}
+        <div className="mb-4">
+          <label htmlFor="contact.email" className="block text-emerald-700 text-sm font-bold mb-2">Email:</label>
+          <input type="email" name="contact.email" value={formData.contact.email} onChange={handleChange} className="shadow border rounded w-full py-2 px-3 text-grey-darker" />
+        </div>
+
+        {/* Management Type */}
+        <div className="mb-4">
+          <label htmlFor="managementType" className="block text-emerald-700 text-sm font-bold mb-2">Management Type:</label>
+          <select name="managementType" value={formData.managementType} onChange={handleChange} className="shadow border rounded w-full py-2 px-3 text-grey-darker">
+            <option value="">Select Type</option>
+            <option value="Landlord">Landlord</option>
+            <option value="Agency">Agency</option>
+          </select>
+        </div>
+
+        {/* Rent Deadline */}
+        <div className="mb-4">
+          <label htmlFor="rentDeadline" className="block text-emerald-700 text-sm font-bold mb-2">Rent Deadline (days):</label>
+          <input type="number" min="1" name="rentDeadline" value={formData.rentDeadline} onChange={handleChange} className="shadow border rounded w-full py-2 px-3 text-grey-darker" />
+        </div>
+
+        {/* Estate */}
+        <div className="mb-4">
+          <label htmlFor="location.estate" className="block text-emerald-700 text-sm font-bold mb-2">Estate:</label>
+          <input type="text" name="location.estate" value={formData.location.estate} onChange={handleChange} className="shadow border rounded w-full py-2 px-3 text-grey-darker" />
+        </div>
+
+        {/* Landmark */}
+        <div className="mb-4">
+          <label htmlFor="location.landmark" className="block text-emerald-700 text-sm font-bold mb-2">Landmark:</label>
+          <input type="text" name="location.landmark" value={formData.location.landmark} onChange={handleChange} className="shadow border rounded w-full py-2 px-3 text-grey-darker" />
+        </div>
+
+        {/* SubCounty */}
+        <div className="mb-4">
+          <label htmlFor="location.subCounty" className="block text-emerald-700 text-sm font-bold mb-2">SubCounty:</label>
+          <input type="text" name="location.subCounty" value={formData.location.subCounty} onChange={handleChange} className="shadow border rounded w-full py-2 px-3 text-grey-darker" />
+        </div>
+
+        {/* City */}
+        <div className="mb-4">
+          <label htmlFor="location.city" className="block text-emerald-700 text-sm font-bold mb-2">City:</label>
+          <input type="text" name="location.city" value={formData.location.city} onChange={handleChange} className="shadow border rounded w-full py-2 px-3 text-grey-darker" />
+        </div>
+
+        {/* Country */}
+        <div className="mb-4">
+          <label htmlFor="location.country" className="block text-emerald-700 text-sm font-bold mb-2">Country:</label>
+          <input type="text" name="location.country" value={formData.location.country} onChange={handleChange} className="shadow border rounded w-full py-2 px-3 text-grey-darker" />
+        </div>
+
+{/* Latitude */}
+<div className="mb-4">
+  <label htmlFor="location.coordinates.lat" className="block text-emerald-700 text-sm font-bold mb-2">Latitude:</label>
+  <input
+    type="text"
+    name="location.coordinates.lat"
+    value={formData.location.coordinates.lat.toString()}
+    onChange={handleChange}
+    className="shadow border rounded w-full py-2 px-3 text-grey-darker"
+  />
+</div>
+
+{/* Longitude */}
+<div className="mb-4">
+  <label htmlFor="location.coordinates.lng" className="block text-emerald-700 text-sm font-bold mb-2">Longitude:</label>
+  <input
+    type="text"
+    name="location.coordinates.lng"
+    value={formData.location.coordinates.lng.toString()}
+    onChange={handleChange}
+    className="shadow border rounded w-full py-2 px-3 text-grey-darker"
+  />
+</div>
+
+
+
+        {/* Amenities Parking */}
+        <div className="mb-4">
+          <label htmlFor="amenities.parking" className="block text-emerald-700 text-sm font-bold mb-2">Parking:</label>
+          <select name="amenities.parking" value={formData.amenities.parking} onChange={handleChange} className="shadow border rounded w-full py-2 px-3 text-grey-darker">
+            <option value="Limited">Limited</option>
+            <option value="Medium">Medium</option>
+            <option value="Enough">Enough</option>
+          </select>
+        </div>
+
+        {/* Policies Cancellation */}
+        <div className="mb-4">
+          <label htmlFor="policies.cancellation" className="block text-emerald-700 text-sm font-bold mb-2">Cancellation Policy:</label>
+          <textarea
+            id="policies.cancellation"
+            name="policies.cancellation"
+            value={formData.policies.cancellation}
+            onChange={handleChange}
+            rows="5"
+            placeholder="Enter each policy point on a new line."
+            className="shadow appearance-none border rounded w-full py-2 px-3 text-grey-darker leading-tight"
+          ></textarea>
+          <p className="text-sm text-gray-600 mt-2">Please enter each point on a new line.</p>
+        </div>
+
+
+        {/* Policies House Rules */}
+        <div className="mb-4">
+          <label htmlFor="policies.houseRules" className="block text-emerald-700 text-sm font-bold mb-2">House Rules:</label>
+          <textarea name="policies.houseRules" value={formData.policies.houseRules} onChange={handleChange} className="shadow border rounded w-full py-2 px-3 text-grey-darker" />
+        </div>
+
+        {/* Additional Pricing Cleaning Fee */}
+        <div className="mb-4">
+          <label htmlFor="additionalPricing.cleaningFee" className="block text-emerald-700 text-sm font-bold mb-2">Cleaning Fee:</label>
+          <input type="number" name="additionalPricing.cleaningFee" value={formData.additionalPricing.cleaningFee} onChange={handleChange} className="shadow border rounded w-full py-2 px-3 text-grey-darker" />
+        </div>
+
+        {/* Additional Pricing Deposit */}
+        <div className="mb-4">
+          <label htmlFor="additionalPricing.deposit" className="block text-emerald-700 text-sm font-bold mb-2">Deposit:</label>
+          <input type="number" name="additionalPricing.deposit" value={formData.additionalPricing.deposit} onChange={handleChange} className="shadow border rounded w-full py-2 px-3 text-grey-darker" />
+        </div>
+
+        {/* Additional Pricing Extra Person Fee */}
+        <div className="mb-4">
+          <label htmlFor="additionalPricing.extraPersonFee" className="block text-emerald-700 text-sm font-bold mb-2">Extra Person Fee:</label>
+          <input type="number" name="additionalPricing.extraPersonFee" value={formData.additionalPricing.extraPersonFee} onChange={handleChange} className="shadow border rounded w-full py-2 px-3 text-grey-darker" />
+        </div>
+
+        {/* Capacity Guests */}
+        <div className="mb-4">
+          <label htmlFor="capacity.guests" className="block text-emerald-700 text-sm font-bold mb-2">Guests:</label>
+          <input type="number" name="capacity.guests" value={formData.capacity.guests} onChange={handleChange} className="shadow border rounded w-full py-2 px-3 text-grey-darker" />
+        </div>
+
+        {/* Capacity Bedrooms */}
+        <div className="mb-4">
+          <label htmlFor="capacity.bedrooms" className="block text-emerald-700 text-sm font-bold mb-2">Bedrooms:</label>
+          <input type="number" name="capacity.bedrooms" value={formData.capacity.bedrooms} onChange={handleChange} className="shadow border rounded w-full py-2 px-3 text-grey-darker" />
+        </div>
+
+        {/* Capacity Beds */}
+        <div className="mb-4">
+          <label htmlFor="capacity.beds" className="block text-emerald-700 text-sm font-bold mb-2">Beds:</label>
+          <input type="number" name="capacity.beds" value={formData.capacity.beds} onChange={handleChange} className="shadow border rounded w-full py-2 px-3 text-grey-darker" />
+        </div>
+
+        {/* Capacity Baths */}
+        <div className="mb-4">
+          <label htmlFor="capacity.baths" className="block text-emerald-700 text-sm font-bold mb-2">Baths:</label>
+          <input type="number" name="capacity.baths" value={formData.capacity.baths} onChange={handleChange} className="shadow border rounded w-full py-2 px-3 text-grey-darker" />
+        </div>
+
+
+      </div>
+      {/* Accessibility and Amenities section */}
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 mb-4">
+        {/* Accessibility Wheelchair */}
+        <div>
+          <label className="inline-flex items-center mt-3">
+            <input type="checkbox" name="accessibility.wheelchair" checked={formData.accessibility.wheelchair} onChange={handleChange} className="form-checkbox h-5 w-5 text-emerald-600" /><span className="ml-2 text-emerald-700">Wheelchair Accessible</span>
+          </label>
+        </div>
+
+        {/* Accessibility Elevator */}
+        <div>
+          <label className="inline-flex items-center mt-3">
+            <input type="checkbox" name="accessibility.elevator" checked={formData.accessibility.elevator} onChange={handleChange} className="form-checkbox h-5 w-5 text-emerald-600" /><span className="ml-2 text-emerald-700">Elevator</span>
+          </label>
+        </div>
+
+        {/* Amenities Wifi */}
+        <div>
+          <label className="inline-flex items-center mt-3">
+            <input type="checkbox" name="amenities.wifi" checked={formData.amenities.wifi} onChange={handleChange} className="form-checkbox h-5 w-5 text-emerald-600" /><span className="ml-2 text-emerald-700">Wifi</span>
+          </label>
+        </div>
+
+        {/* Amenities Pets Allowed */}
+        <div>
+          <label className="inline-flex items-center mt-3">
+            <input type="checkbox" name="amenities.petsAllowed" checked={formData.amenities.petsAllowed} onChange={handleChange} className="form-checkbox h-5 w-5 text-emerald-600" /><span className="ml-2 text-emerald-700">Pets Allowed</span>
+          </label>
+        </div>
+
+        {/* Availability */}
+        <div>
+          <label className="inline-flex items-center mt-3">
+            <input type="checkbox" name="availability" checked={formData.availability} onChange={handleChange} className="form-checkbox h-5 w-5 text-emerald-600" /><span className="ml-2 text-emerald-700">Available for Rent</span>
+          </label>
+        </div>
+
+        {/* Featured */}
+        <div>
+          <label className="inline-flex items-center mt-3">
+            <input type="checkbox" name="featured" checked={formData.featured} onChange={handleChange} className="form-checkbox h-5 w-5 text-emerald-600" /><span className="ml-2 text-emerald-700">Featured</span>
+          </label>
+        </div>
+      </div>
+              {/* Description */}
+              <div className="mb-4">
+          <label htmlFor="description" className="block text-emerald-700 text-sm font-bold mb-2">Description:</label>
+          <textarea name="description" value={formData.description} onChange={handleChange} className="shadow border rounded w-full py-2 px-3 text-grey-darker" />
+        </div>
 
       {/* Submit Button */}
       <div>
-        <button
-          type="submit"
-          className="w-full flex justify-center py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-emerald-600 hover:bg-emerald-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-emerald-500"
-        >
-          Create Listing
-        </button>
+      <button
+      type="submit"
+      disabled={isLoading} // Disable the button when loading
+      className="group relative w-full flex justify-center py-2 px-4 border border-transparent text-sm font-medium rounded-md text-white bg-emerald-600 hover:bg-emerald-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-emerald-500"
+    >
+      <span className="absolute left-0 inset-y-0 flex items-center pl-3">
+        {/* Display spinner during loading */}
+        {isLoading && <FaSpinner className="h-5 w-5 text-white animate-spin" />}
+      </span>
+      {isLoading ? 'Creating...' : 'Create Listing'}
+    </button>
       </div>
     </form>
   );

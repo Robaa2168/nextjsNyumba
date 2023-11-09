@@ -21,8 +21,14 @@ description: {
     required: true,
 },
 imageUrl: {
-    type: String,
-    required: true,
+  type: [String],
+  required: [true, 'At least one image URL is required'], 
+  validate: {
+    validator: function(array) {
+      return Array.isArray(array) && array.length > 0;
+    },
+    message: 'You should provide at least one image.'
+  }
 },
 price: {
     type: String,
@@ -35,6 +41,10 @@ featured: {
 likes: { 
     type: Number, 
     default: 0 
+},
+impressions: {
+  type: Number,
+  default: 0,
 },
 availability: { type: Boolean, default: true },
 category: { 
@@ -50,7 +60,7 @@ managementType: {
 rentDeadline: {
   type: Number,
   min: 1,
-  max: 8,
+  max: 15,
   required: true,
 },
 location: {
@@ -60,9 +70,10 @@ location: {
   city: { type: String, default: 'Nairobi' },
   country: { type: String, default: 'Kenya' },
   coordinates: {
-      lat: { type: Number, required: true },
-      lng: { type: Number, required: true },
+    lat: { type: String, required: true },
+    lng: { type: String, required: true },
   },
+  
 },
 amenities: {
   wifi: { type: Boolean, default: false },

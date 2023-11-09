@@ -25,7 +25,7 @@ export default function Home({ listings: initialListings }) {
     setActiveListingId(listingId);
     setActiveListingTitle(title);
     setCommentModalOpen(true);
-    setLoadingComments(true); // Set loading to true since we're starting to fetch
+    setLoadingComments(true);
 
     try {
       // Fetch the comments as before
@@ -45,7 +45,6 @@ export default function Home({ listings: initialListings }) {
 
 
   useEffect(() => {
-    // Only run this effect if initialListings is not provided (meaning you have to fetch it)
     if (!initialListings) {
       const fetchData = async () => {
         setIsLoading(true);
