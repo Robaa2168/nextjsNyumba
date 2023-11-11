@@ -24,7 +24,9 @@
     "react-dom": "18.2.0",
     "react-icons": "^4.11.0",
     "react-intersection-observer": "^9.5.2",
+    "react-modal-image": "^2.6.0",
     "react-spinners": "^0.13.8",
+    "swiper": "^11.0.4",
     "tailwindcss": "^3.3.3",
     "uuid": "^9.0.1"
   },

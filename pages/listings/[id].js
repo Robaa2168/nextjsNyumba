@@ -1,5 +1,14 @@
+//pages/listings/[id].js
 import Image from 'next/image';
+import { useState } from 'react';
+import { Lightbox } from 'react-modal-image';
+import { FaArrowRight, FaArrowLeft } from 'react-icons/fa';
+import { Swiper, SwiperSlide } from 'swiper/react';
 import { useRouter } from 'next/router';
+import { FaMapMarkerAlt, FaWifi, FaParking, FaWheelchair, FaDog, FaElevator } from 'react-icons/fa';
+import SwiperCore, { Pagination, Navigation } from 'swiper';
+
+SwiperCore.use([Pagination, Navigation]);
 
 export async function getServerSideProps({ params }) {
     const res = await fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL}/listings/${params.id}`);
@@ -13,93 +22,94 @@ export async function getServerSideProps({ params }) {
 }
 
 const ListingPage = ({ listing }) => {
+    const [mainImage, setMainImage] = useState(listing.imageUrl[0]);
+    const [openLightbox, setOpenLightbox] = useState(false);
     const router = useRouter();
     if (router.isFallback) {
         return <div>Loading...</div>;
     }
 
     return (
-        <div className="container mx-auto p-4 flex flex-wrap">
-          {/* Left Column for Images and Contact */}
-          <div className="w-full lg:w-1/2 px-4 mb-6">
-            <h1 className="text-3xl font-bold mb-2">{listing.title}</h1>
-            {/* Image gallery */}
-            <div className="flex space-x-4 mb-6">
-              {Array.isArray(listing.imageUrl) ? (
-                listing.imageUrl.map((url, index) => (
-                  <div key={index} className="w-full sm:w-1/2 lg:w-1/3">
-                    <Image src={url} layout="responsive" width={150} height={150} objectFit="cover" alt={`Image ${index + 1}`} />
-                  </div>
-                ))
-              ) : (
-                <div className="w-full">
-                  <Image src={listing.imageUrl} layout="responsive" width={150} height={150} objectFit="cover" alt="Image 1" />
-                </div>
-              )}
-            </div>
-            {/* Contact details */}
-            <div className="mb-6">
-            <h1 className="text-3xl font-bold mb-2">{listing.title}</h1>
-            <p className="mb-4">{listing.description}</p>
-              <h2 className="text-2xl font-semibold mb-2">Contact</h2>
-              <p>Phone: {listing.contact?.phone}</p>
-              <p>Email: {listing.contact?.email}</p>
-            </div>
+        <div className="max-w-6xl mx-auto p-4 sm:p-6 lg:p-8 bg-white shadow-lg rounded-lg">
+      <div className="flex flex-col md:flex-row -mx-4">
+        <div className="md:flex-1 px-4 mb-4 md:mb-0">
+          <div className="mb-4 cursor-pointer" onClick={() => setOpenLightbox(true)}>
+            <Image
+              src={mainImage}
+              alt="Main Image"
+              width={500}
+              height={300}
+              objectFit="cover"
+              className="rounded-lg transition-transform duration-300 ease-in-out hover:scale-105"
+            />
           </div>
-      
-          {/* Right Column for Details */}
-          <div className="w-full lg:w-1/2 px-4 mb-6">
-            {/* Detailed Information */}
-            <div className="mb-6">
-              <h2 className="text-2xl font-semibold mb-2">Details</h2>
-              <p>Price: {listing.price}</p>
-              <p>Category: {listing.category}</p>
-              {/* Capacity */}
-              <p>Capacity: Guests {listing.capacity?.guests}, Bedrooms {listing.capacity?.bedrooms}, Beds {listing.capacity?.beds}, Baths {listing.capacity?.baths}</p>
-              <p>Management Type: {listing.managementType}</p>
-            </div>
-      
-            {/* Location Information */}
-            <div className="mb-6">
-              <h2 className="text-2xl font-semibold mb-2">Location</h2>
-              <p>{listing.location?.estate}, {listing.location?.landmark}, {listing.location?.subCounty}, {listing.location?.city}, {listing.location?.country}</p>
+          {openLightbox && (
+            <Lightbox large={mainImage} onClose={() => setOpenLightbox(false)} />
+          )}
+          <div className="flex overflow-x-auto">
+            <button className="self-center mr-2"><FaArrowLeft /></button>
+            {listing.imageUrl.map((url, index) => (
+              <div
+                key={index}
+                className="flex-shrink-0 mr-2 cursor-pointer"
+                onClick={() => setMainImage(url)}
+              >
+                <Image
+                  src={url}
+                  alt={`Thumbnail ${index + 1}`}
+                  width={100}
+                  height={100}
+                  objectFit="cover"
+                  className="rounded-lg"
+                />
+              </div>
+            ))}
+            <button className="self-center"><FaArrowRight /></button>
+          </div>
+
+          {/* Listing Details */}
+          <h1 className="text-2xl font-bold mb-2 text-emerald-700">{listing.title}</h1>
+          <p className="text-gray-600 mb-4">{listing.description}</p>
+        </div>
+            <div className="md:flex-1 px-4">
+            
+              <div className="bg-gray-100 p-4 rounded-lg">
+                <h2 className="font-semibold text-lg mb-2 text-emerald-600">Details</h2>
+                <ul className="list-disc pl-5">
+                  <li className="mb-2">Price: KES {listing?.price}</li>
+                  <li className="mb-2">Management Type: {listing?.managementType}</li>
+                  <li className="mb-2">Rent Deadline: {listing?.rentDeadline} days</li>
+                  <li className="mb-2">Location: {listing.location?.city}, {listing.location.country}</li>
+                  <li className="mb-2">Guests: {listing.capacity?.guests}</li>
+                  <li className="mb-2">Bedrooms: {listing.capacity?.bedrooms}</li>
+                  <li className="mb-2">Beds: {listing.capacity?.beds}</li>
+                  <li>Baths: {listing.capacity?.baths}</li>
+                </ul>
+              </div>
+              <div className="bg-emerald-50 p-4 rounded-lg mt-4">
+                <h2 className="font-semibold text-lg mb-2 text-emerald-600">Amenities & Accessibility</h2>
+                <ul className="list-disc pl-5">
+                  {listing.amenities?.wifi && <li className="mb-2"><FaWifi className="inline mr-2 text-emerald-600"/> WiFi</li>}
+                  {listing.amenities?.parking !== 'None' && <li className="mb-2"><FaParking className="inline mr-2 text-emerald-600"/> Parking: {listing.amenities.parking}</li>}
+                  {listing.amenities?.petsAllowed && <li className="mb-2"><FaDog className="inline mr-2 text-emerald-600"/> Pets Allowed</li>}
+                  {listing.accessibility?.wheelchair && <li className="mb-2"><FaWheelchair className="inline mr-2 text-emerald-600"/> Wheelchair Accessible</li>}
+                  {listing.accessibility?.elevator && <li><FaElevator className="inline mr-2 text-emerald-600"/> Elevator</li>}
+                </ul>
+              </div>
               {/* Map Placeholder */}
-              <div className="h-64 w-full bg-gray-200 mb-4">
-                <p className="flex justify-center items-center h-full">Map Placeholder</p>
+              <div className="rounded-lg bg-gray-200 h-64 mt-4 flex items-center justify-center">
+                <FaMapMarkerAlt className="h-12 w-12 text-gray-400"/>
+              </div>
+              <div className="bg-emerald-50 p-4 rounded-lg mt-4">
+                <h2 className="font-semibold text-lg mb-2 text-emerald-600">Policies</h2>
+                <p>Cancellation Policy: {listing.policies?.cancellation}</p>
+                <p>House Rules: {listing.policies?.houseRules}</p>
               </div>
             </div>
-      
-            {/* Amenities */}
-            <div className="mb-6">
-              <h2 className="text-2xl font-semibold mb-2">Amenities</h2>
-              <p>Wifi: {listing.amenities?.wifi ? 'Yes' : 'No'}</p>
-              <p>Parking: {listing.amenities?.parking}</p>
-              <p>Pets Allowed: {listing.amenities?.petsAllowed ? 'Yes' : 'No'}</p>
-            </div>
-      
-            {/* Accessibility Features */}
-            <div className="mb-6">
-              <h2 className="text-2xl font-semibold mb-2">Accessibility</h2>
-              <p>Wheelchair Accessible: {listing.accessibility?.wheelchair ? 'Yes' : 'No'}</p>
-              <p>Elevator: {listing.accessibility?.elevator ? 'Yes' : 'No'}</p>
-            </div>
-      
-            {/* Policies */}
-            <div className="mb-6">
-              <h2 className="text-2xl font-semibold mb-2">Policies</h2>
-              <p>Cancellation Policy: {listing.policies?.cancellation}</p>
-              <p>House Rules: {listing.policies?.houseRules}</p>
-            </div>
-      
-            {/* Additional Pricing */}
-            <div className="mb-6">
-              <h2 className="text-2xl font-semibold mb-2">Additional Pricing</h2>
-              <p>Cleaning Fee: {listing.additionalPricing?.cleaningFee}</p>
-              <p>Deposit: {listing.additionalPricing?.deposit}</p>
-              <p>Extra Person Fee: {listing.additionalPricing?.extraPersonFee}</p>
-            </div>
+            
           </div>
         </div>
       );
-              }      
+    };
+  
 export default ListingPage;
