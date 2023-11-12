@@ -49,7 +49,6 @@ const ListingPage = ({ listing }) => {
                         <Lightbox large={mainImage} onClose={() => setOpenLightbox(false)} />
                     )}
                     <div className="flex overflow-x-auto">
-                        <button className="self-center mr-2"><FaArrowLeft /></button>
                         {listing.imageUrl.map((url, index) => (
                             <div
                                 key={index}
@@ -66,7 +65,6 @@ const ListingPage = ({ listing }) => {
                                 />
                             </div>
                         ))}
-                        <button className="self-center"><FaArrowRight /></button>
                     </div>
 
                     {/* Listing Details */}
@@ -100,20 +98,27 @@ const ListingPage = ({ listing }) => {
                     </div>
                     {/* Map Placeholder */}
                     <div className="rounded-lg bg-gray-200 h-64 mt-4 flex items-center justify-center">
-                        <LoadScript googleMapsApiKey="AIzaSyDOzxbdHOwd3q8Rl4YCB1XDSEshDwcnOxE">
-                            <GoogleMap
-                                mapContainerStyle={{ width: '100%', height: '100%' }}
-                                center={{ lat: parseFloat(listing.location.coordinates.lat), lng: parseFloat(listing.location.coordinates.lng) }}
-                                zoom={15}
-                            >
-                                <Marker
-                                    position={{ lat: parseFloat(listing.location.coordinates.lat), lng: parseFloat(listing.location.coordinates.lng) }}
-                                />
-                            </GoogleMap>
-                        </LoadScript>
-                    </div>
+  <LoadScript googleMapsApiKey="YOUR_GOOGLE_MAPS_API_KEY">
+    {listing.location.houseCoordinates && listing.location.houseCoordinates.coordinates &&
+      <GoogleMap
+        mapContainerStyle={{ width: '100%', height: '100%' }}
+        center={{
+          lat: parseFloat(listing.location.houseCoordinates.coordinates[1]), // Latitude
+          lng: parseFloat(listing.location.houseCoordinates.coordinates[0]) // Longitude
+        }}
+        zoom={15}
+      >
+        <Marker
+          position={{
+            lat: parseFloat(listing.location.houseCoordinates.coordinates[1]), // Latitude
+            lng: parseFloat(listing.location.houseCoordinates.coordinates[0]) // Longitude
+          }}
+        />
+      </GoogleMap>
+    }
+  </LoadScript>
+</div>
 
-                    
 
                     <div className="bg-emerald-50 p-4 rounded-lg mt-4">
                         <h2 className="font-semibold text-lg mb-2 text-emerald-600">Policies</h2>
