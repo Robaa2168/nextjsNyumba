@@ -98,7 +98,7 @@ const ListingPage = ({ listing }) => {
                         </ul>
                     </div>
                     {/* Map Placeholder */}
-                    <div className="rounded-full bg-gray-200 h-64 mt-4 flex items-center justify-center">
+                    <div className="rounded-lg bg-gray-200 h-64 mt-4 flex items-center justify-center">
       <LoadScript
         googleMapsApiKey={process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY}
         onLoad={() => setIsMapLoaded(true)}
