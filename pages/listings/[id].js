@@ -7,7 +7,7 @@ import { Swiper, SwiperSlide } from 'swiper/react';
 import { useRouter } from 'next/router';
 import { FaMapMarkerAlt, FaWifi, FaParking, FaWheelchair, FaDog, FaElevator } from 'react-icons/fa';
 import SwiperCore, { Pagination, Navigation } from 'swiper';
-import { GoogleMap, LoadScript, Marker } from "@react-google-maps/api";
+
 
 
 SwiperCore.use([Pagination, Navigation]);
@@ -98,26 +98,26 @@ const ListingPage = ({ listing }) => {
                     </div>
                     {/* Map Placeholder */}
                     <div className="rounded-lg bg-gray-200 h-64 mt-4 flex items-center justify-center">
-  <LoadScript googleMapsApiKey="YOUR_GOOGLE_MAPS_API_KEY">
-    {listing.location.houseCoordinates && listing.location.houseCoordinates.coordinates &&
-      <GoogleMap
-        mapContainerStyle={{ width: '100%', height: '100%' }}
-        center={{
-          lat: parseFloat(listing.location.houseCoordinates.coordinates[1]), // Latitude
-          lng: parseFloat(listing.location.houseCoordinates.coordinates[0]) // Longitude
-        }}
-        zoom={15}
-      >
-        <Marker
-          position={{
-            lat: parseFloat(listing.location.houseCoordinates.coordinates[1]), // Latitude
-            lng: parseFloat(listing.location.houseCoordinates.coordinates[0]) // Longitude
-          }}
-        />
-      </GoogleMap>
-    }
-  </LoadScript>
-</div>
+                        <LoadScript googleMapsApiKey="YOUR_GOOGLE_MAPS_API_KEY">
+                            {listing.location.houseCoordinates && listing.location.houseCoordinates.coordinates &&
+                                <GoogleMap
+                                    mapContainerStyle={{ width: '100%', height: '100%' }}
+                                    center={{
+                                        lat: parseFloat(listing.location.houseCoordinates.coordinates[1]), // Latitude
+                                        lng: parseFloat(listing.location.houseCoordinates.coordinates[0]) // Longitude
+                                    }}
+                                    zoom={15}
+                                >
+                                    <Marker
+                                        position={{
+                                            lat: parseFloat(listing.location.houseCoordinates.coordinates[1]), // Latitude
+                                            lng: parseFloat(listing.location.houseCoordinates.coordinates[0]) // Longitude
+                                        }}
+                                    />
+                                </GoogleMap>
+                            }
+                        </LoadScript>
+                    </div>
 
 
                     <div className="bg-emerald-50 p-4 rounded-lg mt-4">
