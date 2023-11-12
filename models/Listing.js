@@ -69,7 +69,7 @@ location: {
   landmarkCoordinates: {
     type: { type: String, default: 'Point' },
     coordinates: {
-      type: [Number], // [longitude, latitude] for landmark
+      type: [Number], // [longitude, latitude] 
       required: true
     }
   },
@@ -80,7 +80,7 @@ location: {
   houseCoordinates: {
     type: { type: String, default: 'Point' },
     coordinates: {
-      type: [Number], // [longitude, latitude] for house
+      type: [Number], // [longitude, latitude] 
       required: true
     }
   }
