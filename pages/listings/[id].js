@@ -5,9 +5,9 @@ import { Lightbox } from 'react-modal-image';
 import { FaArrowRight, FaArrowLeft } from 'react-icons/fa';
 import { Swiper, SwiperSlide } from 'swiper/react';
 import { useRouter } from 'next/router';
-import { FaMapMarkerAlt, FaWifi, FaParking, FaWheelchair, FaDog, FaElevator } from 'react-icons/fa';
+import { FaWifi, FaParking, FaDog, FaWheelchair, FaDoorOpen  } from 'react-icons/fa';
 import SwiperCore, { Pagination, Navigation } from 'swiper';
-
+import { GoogleMap, LoadScript, Marker } from "@react-google-maps/api";
 
 
 SwiperCore.use([Pagination, Navigation]);
@@ -24,6 +24,7 @@ export async function getServerSideProps({ params }) {
 }
 
 const ListingPage = ({ listing }) => {
+    const [isMapLoaded, setIsMapLoaded] = useState(false);
     const [mainImage, setMainImage] = useState(listing.imageUrl[0]);
     const [openLightbox, setOpenLightbox] = useState(false);
     const router = useRouter();
@@ -78,8 +79,8 @@ const ListingPage = ({ listing }) => {
                         <ul className="list-disc pl-5">
                             <li className="mb-2">Price: KES {listing?.price}</li>
                             <li className="mb-2">Management Type: {listing?.managementType}</li>
-                            <li className="mb-2">Rent Deadline: {listing?.rentDeadline} days</li>
-                            <li className="mb-2">Location: {listing.location?.city}, {listing.location.country}</li>
+                            <li className="mb-2">Rent Deadline: Date {listing?.rentDeadline} </li>
+                            <li className="mb-2">Location: {listing.location?.houseLocation}</li>
                             <li className="mb-2">Guests: {listing.capacity?.guests}</li>
                             <li className="mb-2">Bedrooms: {listing.capacity?.bedrooms}</li>
                             <li className="mb-2">Beds: {listing.capacity?.beds}</li>
@@ -93,31 +94,48 @@ const ListingPage = ({ listing }) => {
                             {listing.amenities?.parking !== 'None' && <li className="mb-2"><FaParking className="inline mr-2 text-emerald-600" /> Parking: {listing.amenities.parking}</li>}
                             {listing.amenities?.petsAllowed && <li className="mb-2"><FaDog className="inline mr-2 text-emerald-600" /> Pets Allowed</li>}
                             {listing.accessibility?.wheelchair && <li className="mb-2"><FaWheelchair className="inline mr-2 text-emerald-600" /> Wheelchair Accessible</li>}
-                            {listing.accessibility?.elevator && <li><FaElevator className="inline mr-2 text-emerald-600" /> Elevator</li>}
+                            {listing.accessibility?.elevator && <li><FaDoorOpen  className="inline mr-2 text-emerald-600" /> Elevator</li>}
                         </ul>
                     </div>
                     {/* Map Placeholder */}
-                    <div className="rounded-lg bg-gray-200 h-64 mt-4 flex items-center justify-center">
-                        <LoadScript googleMapsApiKey="YOUR_GOOGLE_MAPS_API_KEY">
-                            {listing.location.houseCoordinates && listing.location.houseCoordinates.coordinates &&
-                                <GoogleMap
-                                    mapContainerStyle={{ width: '100%', height: '100%' }}
-                                    center={{
-                                        lat: parseFloat(listing.location.houseCoordinates.coordinates[1]), // Latitude
-                                        lng: parseFloat(listing.location.houseCoordinates.coordinates[0]) // Longitude
-                                    }}
-                                    zoom={15}
-                                >
-                                    <Marker
-                                        position={{
-                                            lat: parseFloat(listing.location.houseCoordinates.coordinates[1]), // Latitude
-                                            lng: parseFloat(listing.location.houseCoordinates.coordinates[0]) // Longitude
-                                        }}
-                                    />
-                                </GoogleMap>
-                            }
-                        </LoadScript>
-                    </div>
+                    <div className="rounded-full bg-gray-200 h-64 mt-4 flex items-center justify-center">
+      <LoadScript
+        googleMapsApiKey={process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY}
+        onLoad={() => setIsMapLoaded(true)}
+        onError={() => console.error('Error loading Google Maps')}
+      >
+        {listing.location.houseCoordinates && listing.location.houseCoordinates.coordinates && isMapLoaded &&
+          <GoogleMap
+            mapContainerStyle={{ width: '100%', height: '100%' }}
+            center={{
+              lat: parseFloat(listing.location.houseCoordinates.coordinates[1]), // Latitude
+              lng: parseFloat(listing.location.houseCoordinates.coordinates[0]) // Longitude
+            }}
+            zoom={20}
+            options={{
+              streetViewControl: false,
+              scaleControl: false,
+              mapTypeControl: false,
+              panControl: false,
+              zoomControl: false,
+              rotateControl: false,
+              fullscreenControl: false
+            }}
+          >
+            <Marker
+              position={{
+                lat: parseFloat(listing.location.houseCoordinates.coordinates[1]), // Latitude
+                lng: parseFloat(listing.location.houseCoordinates.coordinates[0]) // Longitude
+              }}
+              icon={{
+                url: 'https://res.cloudinary.com/dx6jw8k0m/image/upload/v1699821203/nyumba/195492_psmryj.png',
+                scaledSize: new window.google.maps.Size(30, 30)
+              }}
+            />
+          </GoogleMap>
+        }
+      </LoadScript>
+    </div>
 
 
                     <div className="bg-emerald-50 p-4 rounded-lg mt-4">

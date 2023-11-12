@@ -105,7 +105,16 @@ export default function Home({ listings: initialListings }) {
               whileTap={{ scale: 0.95 }}  // Slight shrink effect while tapping/clicking
               transition={{ type: "spring", stiffness: 100 }}  // Smoother transition effect
             >
-              <Listing {...listing} onShowComments={showComments} />
+             
+             <Listing
+        {...listing}
+        onShowComments={showComments}
+        houseCoordinates={
+          listing.location.houseCoordinates && listing.location.houseCoordinates.coordinates
+            ? [listing.location.houseCoordinates.coordinates[0], listing.location.houseCoordinates.coordinates[1]]
+            : null
+        }
+      />
             </motion.div>
           ))}
         </div>

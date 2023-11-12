@@ -1,7 +1,7 @@
 //components/Listing.js
 
-import React, { useState, useCallback } from 'react';
-import { FiHeart, FiBarChart, FiMessageCircle, FiShare } from 'react-icons/fi';
+import React, { useState,useEffect , useCallback } from 'react';
+import { FiHeart, FiBarChart, FiMessageCircle, FiShare,FiMapPin  } from 'react-icons/fi';
 import Image from 'next/image';
 import Link from 'next/link';
 import CommentModal from './CommentModal';
@@ -9,12 +9,66 @@ import { useRouter } from 'next/router';
 import { useAuth } from '../contexts/AuthContext';
 
 
-function Listing({ imageUrl, title, description, price, featured, _id, likes, comments, impressions, onShowComments }) {
+function getUserLocation() {
+    return new Promise((resolve, reject) => {
+        if (!navigator.geolocation) {
+            reject('Geolocation is not supported by your browser');
+        } else {
+            navigator.geolocation.getCurrentPosition(resolve, reject);
+        }
+    });
+}
+
+getUserLocation().then((position) => {
+    console.log('Current Position:', position);
+    console.log('Latitude:', position.coords.latitude);
+    console.log('Longitude:', position.coords.longitude);
+}).catch((error) => {
+    console.error('Error getting location:', error);
+});
+
+
+
+function calculateDistance(lat1, lon1, lat2, lon2) {
+    const R = 6371e3; // metres
+    const φ1 = lat1 * Math.PI / 180; // φ, λ in radians
+    const φ2 = lat2 * Math.PI / 180;
+    const Δφ = (lat2 - lat1) * Math.PI / 180;
+    const Δλ = (lon2 - lon1) * Math.PI / 180;
+
+    const a = Math.sin(Δφ / 2) * Math.sin(Δφ / 2) +
+        Math.cos(φ1) * Math.cos(φ2) *
+        Math.sin(Δλ / 2) * Math.sin(Δλ / 2);
+    const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+
+    return R * c; // in metres
+}
+
+
+function Listing({ imageUrl, title, description, price, featured, _id, likes, comments, impressions,houseCoordinates, onShowComments }) {
     const [likesCount, setLikesCount] = useState(likes);
     const [shares, setShares] = useState(0);
     const [impressionCount, setImpressionCount] = useState(impressions);
+    const [distance, setDistance] = useState(null);
     const { user } = useAuth();
     const router = useRouter();
+
+
+    useEffect(() => {
+        if (houseCoordinates && houseCoordinates.length === 2) {
+            getUserLocation().then((position) => {
+                const { latitude, longitude } = position.coords;
+                const houseLat = houseCoordinates[1];
+                const houseLng = houseCoordinates[0];
+                const dist = calculateDistance(latitude, longitude, houseLat, houseLng);
+                setDistance(dist);
+            }).catch(error => {
+                console.error('Error getting location', error);
+            });
+        }
+    }, [houseCoordinates]);
+      
+
 
     const showComments = () => {
         onShowComments(_id, title);
@@ -84,7 +138,17 @@ function Listing({ imageUrl, title, description, price, featured, _id, likes, co
                 <Link href={`/listings/${_id}`} onClick={recordImpression} className="hover:underline cursor-pointer">
                     <h3 className="font-semibold text-base sm:text-lg mb-4 truncate">{title}</h3>
                 </Link>
+{distance && (
+    <div className="flex items-center justify-center mt-2">
+        <FiMapPin className="mr-2" />
+        <p>{(distance / 1000).toFixed(2)} km away</p> {/* Convert meters to kilometers */}
+    </div>
+)}
+
+
+
                 <p className="text-gray-600 mb-4 truncate border-b border-dotted border-emerald-200 pb-2">{description}</p>
+                
                 <div className="flex flex-row items-center justify-between w-full">
                     <span className="font-bold text-xs sm:text-sm flex-shrink-0 text-emerald-500">KES{price}</span>
                     <div className="flex space-x-2  sm:mt-0">
