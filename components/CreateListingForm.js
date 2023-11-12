@@ -1,9 +1,10 @@
 // components/CreateListingForm.js
-import React, { useState, useRef, useEffect} from 'react';
+import React, { useState, useRef, useEffect, } from 'react';
 import axios from 'axios';
 import { useRouter } from 'next/router';
 import { useAuth } from '../contexts/AuthContext';
 import { FaSpinner } from 'react-icons/fa';
+import { useLoadScript, Autocomplete } from '@react-google-maps/api';
 
 function CreateListingForm() {
 
@@ -68,10 +69,20 @@ function CreateListingForm() {
 
   const [formData, setFormData] = useState(initialFormData);
 
+  const { isLoaded } = useLoadScript({
+    googleMapsApiKey: process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY,
+    libraries: ["places"],
+  });
+
+  const autocompleteRef = useRef();
+  const houseAutocompleteRef = useRef();
+
+
+
   // Function to update state as user inputs data
   const handleChange = (e) => {
     const { name, value, type, checked } = e.target;
-  
+
     const setValue = (name, value, prevFormData) => {
       const keys = name.split('.');
       let current = prevFormData;
@@ -80,7 +91,7 @@ function CreateListingForm() {
       }
       current[keys[keys.length - 1]] = value;
     };
-  
+
     setFormData((prevFormData) => {
       const newData = { ...prevFormData };
       if (type === 'checkbox') {
@@ -91,7 +102,7 @@ function CreateListingForm() {
       return newData;
     });
   };
-  
+
 
 
   const handleFileChange = (e) => {
@@ -126,9 +137,9 @@ function CreateListingForm() {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    setIsLoading(true); 
+    setIsLoading(true);
     setErrorMessage(null);
-    setSuccessMessage('Creating...'); 
+    setSuccessMessage('Creating...');
 
     try {
       const imageUrls = await uploadImages(); // Upload images first
@@ -164,30 +175,79 @@ function CreateListingForm() {
       setErrorMessage('An error occurred while submitting the form. Please try again.');
       console.error('Error submitting form', error);
     } finally {
-    setIsLoading(false); 
-  }
-};
+      setIsLoading(false);
+    }
+  };
 
   useEffect(() => {
     // Declare the async function inside the useEffect
     const fetchCategories = async () => {
-        try {
-            // Await the axios call and get the response
-            const response = await axios.get('/api/categories/get_categories');
-            // Update state with the fetched categories
-            setCategories(response.data.data); // Make sure this matches the shape of your response
-        } catch (error) {
-            // Log and set error if the fetch fails
-            console.error('Error fetching categories:', error);
-            setErrorMessage('Failed to load categories.');
-        }
+      try {
+        // Await the axios call and get the response
+        const response = await axios.get('/api/categories/get_categories');
+        // Update state with the fetched categories
+        setCategories(response.data.data); // Make sure this matches the shape of your response
+      } catch (error) {
+        // Log and set error if the fetch fails
+        console.error('Error fetching categories:', error);
+        setErrorMessage('Failed to load categories.');
+      }
     };
 
     // Call the async function
     fetchCategories();
-}, []); // The empty dependency array means this effect will only run once on component mount
+  }, []); // The empty dependency array means this effect will only run once on component mount
 
 
+  if (!isLoaded) return <div>Loading...</div>;
+
+  const handlePlaceSelect = () => {
+    const place = autocompleteRef.current.getPlace();
+    if (!place.geometry) {
+      // Handle scenario when the place is not found
+      return;
+    }
+  
+    const lat = place.geometry.location.lat();
+    const lng = place.geometry.location.lng();
+  
+    setFormData((prevFormData) => ({
+      ...prevFormData,
+      location: {
+        ...prevFormData.location,
+        landmark: place.name, // Raw text description
+        landmarkCoordinates: {
+          type: 'Point',
+          coordinates: [lng, lat],
+        },
+      },
+    }));
+  };
+  
+
+  const handleHousePlaceSelect = () => {
+    const place = houseAutocompleteRef.current.getPlace();
+    if (!place.geometry) {
+      // Handle scenario when the place is not found
+      return;
+    }
+  
+    const lat = place.geometry.location.lat();
+    const lng = place.geometry.location.lng();
+  
+    setFormData((prevFormData) => ({
+      ...prevFormData,
+      location: {
+        ...prevFormData.location,
+        houseLocation: place.formatted_address, // Raw text description
+        houseCoordinates: {
+          type: 'Point',
+          coordinates: [lng, lat],
+        },
+      },
+    }));
+  };
+  
 
   return (
     <form className="w-full max-w-3xl bg-white p-8 border border-emerald-200 rounded-md shadow-md" onSubmit={handleSubmit} >
@@ -233,21 +293,21 @@ function CreateListingForm() {
       </div>
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
 
-{/* Category Dropdown */}
-<div className="mb-4">
-  <label htmlFor="category" className="block text-emerald-700 text-sm font-bold mb-2">Category:</label>
-  <select
-    name="category"
-    value={formData.category}
-    onChange={handleChange}
-    className="shadow border rounded w-full py-2 px-3 text-grey-darker"
-  >
-    <option value="">Select a category</option>
-    {categories.map((category) => (
-      <option key={category._id} value={category._id}>{category.name}</option>
-    ))}
-  </select>
-</div>
+        {/* Category Dropdown */}
+        <div className="mb-4">
+          <label htmlFor="category" className="block text-emerald-700 text-sm font-bold mb-2">Category:</label>
+          <select
+            name="category"
+            value={formData.category}
+            onChange={handleChange}
+            className="shadow border rounded w-full py-2 px-3 text-grey-darker"
+          >
+            <option value="">Select a category</option>
+            {categories.map((category) => (
+              <option key={category._id} value={category._id}>{category.name}</option>
+            ))}
+          </select>
+        </div>
 
         {/* Price */}
         <div className="mb-4">
@@ -293,8 +353,34 @@ function CreateListingForm() {
         {/* Landmark */}
         <div className="mb-4">
           <label htmlFor="location.landmark" className="block text-emerald-700 text-sm font-bold mb-2">Landmark:</label>
-          <input type="text" name="location.landmark" value={formData.location.landmark} onChange={handleChange} className="shadow border rounded w-full py-2 px-3 text-grey-darker" />
+          <Autocomplete
+            onLoad={(autocomplete) => (autocompleteRef.current = autocomplete)}
+            onPlaceChanged={handlePlaceSelect}
+          >
+            <input
+              type="text"
+              name="location.landmark"
+              value={formData.location.landmark}
+              onChange={handleChange}
+              className="shadow border rounded w-full py-2 px-3 text-grey-darker"
+            />
+          </Autocomplete>
         </div>
+        {/* House Location */}
+        <div className="mb-4">
+          <label htmlFor="houseLocation" className="block text-emerald-700 text-sm font-bold mb-2">House Location:</label>
+          <Autocomplete
+            onLoad={(autocomplete) => (houseAutocompleteRef.current = autocomplete)}
+            onPlaceChanged={handleHousePlaceSelect}
+          >
+            <input
+              type="text"
+              name="houseLocation"
+              className="shadow border rounded w-full py-2 px-3 text-grey-darker"
+            />
+          </Autocomplete>
+        </div>
+
 
         {/* SubCounty */}
         <div className="mb-4">
@@ -302,41 +388,6 @@ function CreateListingForm() {
           <input type="text" name="location.subCounty" value={formData.location.subCounty} onChange={handleChange} className="shadow border rounded w-full py-2 px-3 text-grey-darker" />
         </div>
 
-        {/* City */}
-        <div className="mb-4">
-          <label htmlFor="location.city" className="block text-emerald-700 text-sm font-bold mb-2">City:</label>
-          <input type="text" name="location.city" value={formData.location.city} onChange={handleChange} className="shadow border rounded w-full py-2 px-3 text-grey-darker" />
-        </div>
-
-        {/* Country */}
-        <div className="mb-4">
-          <label htmlFor="location.country" className="block text-emerald-700 text-sm font-bold mb-2">Country:</label>
-          <input type="text" name="location.country" value={formData.location.country} onChange={handleChange} className="shadow border rounded w-full py-2 px-3 text-grey-darker" />
-        </div>
-
-{/* Latitude */}
-<div className="mb-4">
-  <label htmlFor="location.coordinates.lat" className="block text-emerald-700 text-sm font-bold mb-2">Latitude:</label>
-  <input
-    type="text"
-    name="location.coordinates.lat"
-    value={formData.location.coordinates.lat.toString()}
-    onChange={handleChange}
-    className="shadow border rounded w-full py-2 px-3 text-grey-darker"
-  />
-</div>
-
-{/* Longitude */}
-<div className="mb-4">
-  <label htmlFor="location.coordinates.lng" className="block text-emerald-700 text-sm font-bold mb-2">Longitude:</label>
-  <input
-    type="text"
-    name="location.coordinates.lng"
-    value={formData.location.coordinates.lng.toString()}
-    onChange={handleChange}
-    className="shadow border rounded w-full py-2 px-3 text-grey-darker"
-  />
-</div>
 
 
 
@@ -460,25 +511,25 @@ function CreateListingForm() {
           </label>
         </div>
       </div>
-              {/* Description */}
-              <div className="mb-4">
-          <label htmlFor="description" className="block text-emerald-700 text-sm font-bold mb-2">Description:</label>
-          <textarea name="description" value={formData.description} onChange={handleChange} className="shadow border rounded w-full py-2 px-3 text-grey-darker" />
-        </div>
+      {/* Description */}
+      <div className="mb-4">
+        <label htmlFor="description" className="block text-emerald-700 text-sm font-bold mb-2">Description:</label>
+        <textarea name="description" value={formData.description} onChange={handleChange} className="shadow border rounded w-full py-2 px-3 text-grey-darker" />
+      </div>
 
       {/* Submit Button */}
       <div>
-      <button
-      type="submit"
-      disabled={isLoading} // Disable the button when loading
-      className="group relative w-full flex justify-center py-2 px-4 border border-transparent text-sm font-medium rounded-md text-white bg-emerald-600 hover:bg-emerald-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-emerald-500"
-    >
-      <span className="absolute left-0 inset-y-0 flex items-center pl-3">
-        {/* Display spinner during loading */}
-        {isLoading && <FaSpinner className="h-5 w-5 text-white animate-spin" />}
-      </span>
-      {isLoading ? 'Creating...' : 'Create Listing'}
-    </button>
+        <button
+          type="submit"
+          disabled={isLoading} // Disable the button when loading
+          className="group relative w-full flex justify-center py-2 px-4 border border-transparent text-sm font-medium rounded-md text-white bg-emerald-600 hover:bg-emerald-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-emerald-500"
+        >
+          <span className="absolute left-0 inset-y-0 flex items-center pl-3">
+            {/* Display spinner during loading */}
+            {isLoading && <FaSpinner className="h-5 w-5 text-white animate-spin" />}
+          </span>
+          {isLoading ? 'Creating...' : 'Create Listing'}
+        </button>
       </div>
     </form>
   );

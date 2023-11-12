@@ -66,15 +66,27 @@ rentDeadline: {
 location: {
   estate: { type: String },
   landmark: { type: String, required: true },
+  landmarkCoordinates: {
+    type: { type: String, default: 'Point' },
+    coordinates: {
+      type: [Number], // [longitude, latitude] for landmark
+      required: true
+    }
+  },
   subCounty: { type: String, required: true },
   city: { type: String, default: 'Nairobi' },
   country: { type: String, default: 'Kenya' },
-  coordinates: {
-    lat: { type: String, required: true },
-    lng: { type: String, required: true },
-  },
-  
+  houseLocation: { type: String, required: true },
+  houseCoordinates: {
+    type: { type: String, default: 'Point' },
+    coordinates: {
+      type: [Number], // [longitude, latitude] for house
+      required: true
+    }
+  }
 },
+
+
 amenities: {
   wifi: { type: Boolean, default: false },
   parking: { 
@@ -104,6 +116,10 @@ capacity: {
     baths: { type: Number, required: true },
 },
 });
+
+ListingSchema.index({ 'location.landmarkCoordinates': '2dsphere' });
+ListingSchema.index({ 'location.houseCoordinates': '2dsphere' });
+
 // Check if the model is already compiled, in which case use that, else compile it
 const Listing = mongoose.models.Listing || mongoose.model('Listing', ListingSchema);
 export default Listing;
