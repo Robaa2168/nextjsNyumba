@@ -45,4 +45,12 @@ const AirbnbCloneUserSchema = new mongoose.Schema({
   timestamps: true, 
 });
 
-module.exports = mongoose.model('AirbnbCloneUser', AirbnbCloneUserSchema);
+// Check if the model has already been defined
+let AirbnbCloneUser;
+if (mongoose.models.AirbnbCloneUser) {
+    AirbnbCloneUser = mongoose.model('AirbnbCloneUser');
+} else {
+    AirbnbCloneUser = mongoose.model('AirbnbCloneUser', AirbnbCloneUserSchema);
+}
+
+module.exports = AirbnbCloneUser;

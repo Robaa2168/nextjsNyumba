@@ -26,7 +26,12 @@ const airbnbCategorySchema = new Schema({
   }
 }, { timestamps: true });
 
-// Create a model from the schema
-const AirbnbCategory = mongoose.model('AirbnbCategory', airbnbCategorySchema);
+// Check if the model has already been defined
+let AirbnbCategory;
+if (mongoose.models.AirbnbCategory) {
+    AirbnbCategory = mongoose.model('AirbnbCategory');
+} else {
+    AirbnbCategory = mongoose.model('AirbnbCategory', airbnbCategorySchema);
+}
 
 module.exports = AirbnbCategory;

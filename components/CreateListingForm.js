@@ -106,11 +106,20 @@ function CreateListingForm() {
 
 
   const handleFileChange = (e) => {
-    // Update the state with the selected files
+    const newFiles = Array.from(e.target.files);
     setFormData((prevFormData) => ({
       ...prevFormData,
-      imageUrl: [...prevFormData.imageUrl, ...e.target.files]
+      imageUrl: [...prevFormData.imageUrl, ...newFiles]
     }));
+  };
+
+  const removeImage = (e, index) => {
+    e.preventDefault(); // Prevents the default form submit action
+    setFormData((prevFormData) => {
+      const updatedImages = [...prevFormData.imageUrl];
+      updatedImages.splice(index, 1);
+      return { ...prevFormData, imageUrl: updatedImages };
+    });
   };
 
   const uploadImages = async () => {
@@ -262,7 +271,8 @@ function CreateListingForm() {
           {successMessage}
         </div>
       )}
-      <div className="flex justify-center items-center mb-4 w-full">
+      
+      <div className="flex flex-col justify-center items-center mb-4 w-full">
         <label htmlFor="image" className="block text-emerald-700 text-sm font-bold mb-2 w-full">
           <label htmlFor="image-upload" className="block text-emerald-700 text-sm font-bold mb-2 w-full">
             <div className="flex flex-col items-center justify-center border-2 border-dashed border-gray-300 rounded-lg p-6 cursor-pointer hover:border-emerald-500 transition-colors">
@@ -282,9 +292,22 @@ function CreateListingForm() {
               />
             </div>
           </label>
-
         </label>
-      </div>
+
+
+<div className="mt-4 flex flex-wrap justify-start items-center w-full">
+  {formData.imageUrl.map((image, index) => (
+    <div key={index} className="flex flex-col items-center mr-4 mb-4">
+      <img src={URL.createObjectURL(image)} alt={`Uploaded #${index + 1}`} className="w-16 h-16 object-cover rounded-md" />
+      <button onClick={(e) => removeImage(e, index)} className="mt-2 text-red-500">
+        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12"></path>
+        </svg>
+      </button>
+    </div>
+  ))}
+</div>
+</div>
 
       {/* Title */}
       <div className="mb-4">
