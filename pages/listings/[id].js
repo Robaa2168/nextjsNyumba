@@ -285,8 +285,8 @@ const ListingPage = ({ listing }) => {
 
 
                     </div>
-                    <div className="md:flex-1 px-4">
-                        <div className="bg-gray-100 p-4 sm:p-6 rounded-lg shadow-md w-full max-w-md mx-auto">
+                    <div className="mt-4 sm:mt-0 md:flex-1 px-4">
+  <div className="bg-gray-100 p-4 sm:p-6 rounded-lg shadow-md w-full max-w-md mx-auto">
                             {/* Price and Market Price Section */}
                             <div className="text-center">
                                 <h1 className="text-xl sm:text-2xl font-bold text-gray-800">KES {listing.price}</h1>

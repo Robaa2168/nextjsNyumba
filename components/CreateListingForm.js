@@ -1,5 +1,5 @@
 // components/CreateListingForm.js
-import React, { useState, useRef, useEffect, } from 'react';
+import React, { useState, useRef, useEffect,useCallback } from 'react';
 import axios from 'axios';
 import { useRouter } from 'next/router';
 import { useAuth } from '../contexts/AuthContext';
