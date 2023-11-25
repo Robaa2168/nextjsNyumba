@@ -70,7 +70,7 @@ function CreateListingForm() {
   };
 
   const [formData, setFormData] = useState(initialFormData);
-  
+
   const handleLogout = useCallback(() => {
     signOut();
   }, []);
@@ -80,7 +80,7 @@ function CreateListingForm() {
     if (!user && !authLoading) {
       handleLogout();
     }
-  }, [user, authLoading, handleLogout]);
+  }, [user, handleLogout]);
 
 
   const { isLoaded } = useLoadScript({

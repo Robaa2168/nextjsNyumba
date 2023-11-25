@@ -3,6 +3,7 @@ import axios from 'axios';
 import { useRouter } from 'next/router';
 import { useAuth } from '../contexts/AuthContext';
 
+
 const CreateCategoryForm = () => {
     const [name, setName] = useState('');
     const [description, setDescription] = useState('');
@@ -13,7 +14,17 @@ const CreateCategoryForm = () => {
     const router = useRouter();
     const { user } = useAuth();
     const imageInputRef = useRef(null);
-    
+
+    const handleLogout = useCallback(() => {
+        signOut();
+      }, []);
+
+      useEffect(() => {
+        if (!user && !authLoading) {
+          handleLogout();
+        }
+      }, [user, authLoading, handleLogout]);
+
 
     const handleFileChange = (event) => {
         setFile(event.target.files[0]); // Store the file
@@ -90,24 +101,6 @@ const CreateCategoryForm = () => {
             setIsLoading(false); // Deactivate loading state
         }
     };
-
-
-    if (!isLoaded) return <div>Loading...</div>;
-
-    const handleLogout = useCallback(() => {
-        signOut();
-      }, []);
-
-      useEffect(() => {
-        if (!user && !authLoading) {
-          handleLogout();
-        }
-      }, [user, authLoading, handleLogout]);
-
-      const { isLoaded } = useLoadScript({
-        googleMapsApiKey: process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY,
-        libraries, // Use the constant here
-      });
 
     return (
         <form className="w-full max-w-3xl bg-white p-8 border border-emerald-200 rounded-md shadow-md" onSubmit={handleSubmit}>
