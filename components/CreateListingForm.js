@@ -6,6 +6,8 @@ import { useAuth } from '../contexts/AuthContext';
 import { FaSpinner } from 'react-icons/fa';
 import { useLoadScript, Autocomplete } from '@react-google-maps/api';
 
+const libraries = ['places'];
+
 function CreateListingForm() {
 
   const router = useRouter();
@@ -68,10 +70,22 @@ function CreateListingForm() {
   };
 
   const [formData, setFormData] = useState(initialFormData);
+  
+  const handleLogout = useCallback(() => {
+    signOut();
+  }, []);
+  
+
+  useEffect(() => {
+    if (!user && !authLoading) {
+      handleLogout();
+    }
+  }, [user, authLoading, handleLogout]);
+
 
   const { isLoaded } = useLoadScript({
     googleMapsApiKey: process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY,
-    libraries: ["places"],
+    libraries,
   });
 
   const autocompleteRef = useRef();
