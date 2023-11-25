@@ -130,20 +130,20 @@ const ListingPage = ({ listing }) => {
     return (
         <>
         <Head>
-            <title>{listing.productTitle} - ClassiConnect</title>
+            <title>{listing.title} - viewNyumba</title>
             <meta name="description" content={listing.description} />
 
             {/* Open Graph / Facebook */}
             <meta property="og:type" content="website" />
             <meta property="og:url" content={`${baseUrl}/listings/${listing._id}`} />
-            <meta property="og:title" content={listing.productTitle} />
+            <meta property="og:title" content={listing.title} />
             <meta property="og:description" content={listing.description} />
             <meta property="og:image" content={listing.imageUrl[0]} />
 
             {/* Twitter */}
             <meta property="twitter:card" content="summary_large_image" />
             <meta property="twitter:url" content={`${baseUrl}/listings/${listing._id}`} />
-            <meta property="twitter:title" content={listing.productTitle} />
+            <meta property="twitter:title" content={listing.title} />
             <meta property="twitter:description" content={listing.description} />
             <meta property="twitter:image" content={listing.imageUrl[0]} />
 
